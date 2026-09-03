@@ -5,8 +5,6 @@
  * NOTE: A strict Content-Security-Policy is applied only in production.
  * During `next dev`, Fast Refresh / HMR inject inline scripts and open a
  * WebSocket that a strict CSP can block — which manifests as a blank page.
- * We therefore send a relaxed (or no) CSP in development and reserve the
- * hardened policy for production builds.
  */
 
 const baseSecurityHeaders = [
@@ -21,12 +19,15 @@ const isProd = process.env.NODE_ENV === "production";
 
 const productionCSP = [
   "default-src 'self'",
-  // Google fonts used by next/font/google from the layout
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
+  // 'unsafe-inline' required by Next.js inlined scripts; 'unsafe-eval' needed
+  // by qr-code-styling canvas rendering at runtime.
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self'",
+  // blob: needed for QR code downloads (canvas.toBlob URL.createObjectURL)
+  // data: needed for inline SVG / font fallbacks
+  "connect-src 'self' blob: data:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -43,11 +44,22 @@ const securityHeaders = isProd
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Mongoose is a C++-addon package that must not be bundled into edge / client
+  // chunks. Next.js will keep it as an external require in the server runtime.
+  serverExternalPackages: ["mongoose"],
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: securityHeaders,
+      },
+      {
+        // Allow PDFs to be opened inline in the browser
+        source: "/api/files/:id*",
+        headers: [
+          { key: "Content-Disposition", value: "inline" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
       },
     ];
   },

@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 /**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
+ * Global-mongoose is used here to maintain a cached connection across hot
+ * reloads in development. In Vercel serverless functions the cached value may
+ * survive across warm invocations of the same function instance but is NOT
+ * guaranteed — the connection is always re-established on cold start.
  */
 let cached = global.mongoose;
 
@@ -14,8 +15,6 @@ if (!cached) {
 const getUri = () => {
   const uri = process.env.MONGODB_URI;
   if (!uri || uri.trim() === "") {
-    // Fail fast instead of silently connecting to an unintended default
-    // instance, and never leak a connection string or credentials.
     throw new Error(
       "MONGODB_URI environment variable is not defined. " +
         "Provide it in your environment or a local .env.local (see .env.example)."
@@ -29,21 +28,19 @@ async function dbConnect() {
     return cached.conn;
   }
 
-  const uri = getUri();
-
   if (!cached.promise) {
-    const opts = {
+    cached.promise = mongoose.connect(getUri(), {
       bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
-      return mongoose;
-    });
+      // Atlas-friendly timeouts for serverless cold starts
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    }).then((m) => m);
   }
-  
+
   try {
     cached.conn = await cached.promise;
   } catch (e) {
+    // Reset so the next call retries instead of reusing a broken promise
     cached.promise = null;
     throw e;
   }
