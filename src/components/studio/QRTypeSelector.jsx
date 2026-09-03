@@ -1,22 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Toggle from "@/components/ui/Toggle";
 import { Globe, Wifi, Contact, Mail, Calendar, FileText, Upload, Check, Loader2, X } from "lucide-react";
 import { DATA_BUILDERS } from "@/lib/qr-data-builders";
-import { storage, isFirebaseConfigured } from "@/lib/firebase";
+import { supabase, supabaseUrl, isSupabaseConfigured, DOCUMENTS_BUCKET } from "@/lib/supabase";
 
 export default function QRTypeSelector({ activeType, setActiveType, formData, setFormData, onGenerate, isDynamic, setIsDynamic }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const [firebaseReady, setFirebaseReady] = useState(false);
+  const [supabaseReady, setSupabaseReady] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    setFirebaseReady(isFirebaseConfigured());
+    setSupabaseReady(isSupabaseConfigured());
   }, []);
 
   const types = [
@@ -40,8 +39,8 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
     setUploading(true);
 
     try {
-      if (!isFirebaseConfigured()) {
-        throw new Error("Firebase Storage is not configured. Add your Firebase keys to continue.");
+      if (!isSupabaseConfigured()) {
+        throw new Error("Supabase Storage is not configured. Add your Supabase keys to continue.");
       }
 
       if (!file.type || file.type !== "application/pdf") {
@@ -52,17 +51,29 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
         throw new Error("File exceeds 10MB limit");
       }
 
-      // Upload directly from the browser to Firebase Storage. This bypasses
+      // Upload directly from the browser to Supabase Storage. This bypasses
       // Vercel's 4.5MB serverless request limit entirely.
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const storagePath = `qrfiles/${Date.now()}-${safeName}`;
-      const storageRef = ref(storage, storagePath);
+      const storagePath = `${Date.now()}-${safeName}`;
 
-      await uploadBytes(storageRef, file, {
-        contentType: "application/pdf",
-      });
+      const { error: uploadError } = await supabase.storage
+        .from(DOCUMENTS_BUCKET)
+        .upload(storagePath, file, {
+          contentType: "application/pdf",
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      const downloadUrl = await getDownloadURL(storageRef);
+      if (uploadError) {
+        throw new Error(uploadError.message || "Upload failed");
+      }
+
+      // Public bucket => stable public URL anyone can open by scanning the QR.
+      const { data: publicUrlData } = supabase.storage
+        .from(DOCUMENTS_BUCKET)
+        .getPublicUrl(storagePath);
+
+      const downloadUrl = publicUrlData?.publicUrl || `${supabaseUrl}/storage/v1/object/public/${DOCUMENTS_BUCKET}/${storagePath}`;
 
       handleDataChange("url", downloadUrl);
       handleDataChange("filename", file.name);
@@ -183,7 +194,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
             ) : (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || !firebaseReady}
+                disabled={uploading || !supabaseReady}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -194,25 +205,25 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
                   borderRadius: "var(--radius-lg)",
                   border: "2px dashed var(--color-border)",
                   background: uploadError ? "rgba(239, 68, 68, 0.03)" : "var(--color-bg)",
-                  cursor: uploading || !firebaseReady ? "not-allowed" : "pointer",
+                  cursor: uploading || !supabaseReady ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
                   width: "100%",
                 }}
                 onMouseEnter={(e) => {
-                  if (!uploading && firebaseReady) e.currentTarget.style.borderColor = "var(--color-primary)";
+                  if (!uploading && supabaseReady) e.currentTarget.style.borderColor = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!uploading && firebaseReady) e.currentTarget.style.borderColor = "var(--color-border)";
+                  if (!uploading && supabaseReady) e.currentTarget.style.borderColor = "var(--color-border)";
                 }}
               >
                 {uploading ? (
                   <Loader2 size={28} style={{ color: "var(--color-primary)", animation: "spin 1s linear infinite" }} />
                 ) : (
-                  <Upload size={28} style={{ color: uploadError || !firebaseReady ? "var(--color-error)" : "var(--color-text-muted)" }} />
+                  <Upload size={28} style={{ color: uploadError || !supabaseReady ? "var(--color-error)" : "var(--color-text-muted)" }} />
                 )}
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }}>
-                    {uploading ? "Uploading..." : !firebaseReady ? "Storage not configured" : "Upload PDF"}
+                    {uploading ? "Uploading..." : !supabaseReady ? "Storage not configured" : "Upload PDF"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
                     PDF up to 10MB
@@ -221,7 +232,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
               </button>
             )}
 
-            {!firebaseReady && !data.fileId && (
+            {!supabaseReady && !data.fileId && (
               <div style={{
                 fontSize: "0.8125rem",
                 color: "var(--color-text-muted)",
@@ -230,7 +241,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
                 background: "rgba(245, 158, 11, 0.08)",
                 border: "1px solid rgba(245, 158, 11, 0.25)",
               }}>
-                Set your Firebase Storage keys (NEXT_PUBLIC_FIREBASE_*) in .env.local / Vercel to enable PDF uploads.
+                Set your Supabase Storage keys (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY) in .env.local / Vercel to enable PDF uploads.
               </div>
             )}
 
