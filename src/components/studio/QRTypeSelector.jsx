@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Toggle from "@/components/ui/Toggle";
 import { Globe, Wifi, Contact, Mail, Calendar, FileText, Upload, Check, Loader2, X } from "lucide-react";
 import { DATA_BUILDERS } from "@/lib/qr-data-builders";
+import { storage, isFirebaseConfigured } from "@/lib/firebase";
 
 export default function QRTypeSelector({ activeType, setActiveType, formData, setFormData, onGenerate, isDynamic, setIsDynamic }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [firebaseReady, setFirebaseReady] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setFirebaseReady(isFirebaseConfigured());
+  }, []);
 
   const types = [
     { id: "website", label: "Website", Icon: Globe },
@@ -33,24 +40,33 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
     setUploading(true);
 
     try {
-      const body = new FormData();
-      body.append("file", file);
-
-      const res = await fetch("/api/files", {
-        method: "POST",
-        credentials: "include",
-        body,
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || "Upload failed");
+      if (!isFirebaseConfigured()) {
+        throw new Error("Firebase Storage is not configured. Add your Firebase keys to continue.");
       }
 
-      handleDataChange("url", result.url);
-      handleDataChange("filename", result.filename);
-      handleDataChange("fileId", result.fileId);
+      if (!file.type || file.type !== "application/pdf") {
+        throw new Error("Only PDF files are allowed");
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error("File exceeds 10MB limit");
+      }
+
+      // Upload directly from the browser to Firebase Storage. This bypasses
+      // Vercel's 4.5MB serverless request limit entirely.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = `qrfiles/${Date.now()}-${safeName}`;
+      const storageRef = ref(storage, storagePath);
+
+      await uploadBytes(storageRef, file, {
+        contentType: "application/pdf",
+      });
+
+      const downloadUrl = await getDownloadURL(storageRef);
+
+      handleDataChange("url", downloadUrl);
+      handleDataChange("filename", file.name);
+      handleDataChange("fileId", storagePath);
     } catch (err) {
       setUploadError(err.message || "Upload failed");
     } finally {
@@ -167,7 +183,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
             ) : (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                disabled={uploading || !firebaseReady}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -178,31 +194,44 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
                   borderRadius: "var(--radius-lg)",
                   border: "2px dashed var(--color-border)",
                   background: uploadError ? "rgba(239, 68, 68, 0.03)" : "var(--color-bg)",
-                  cursor: uploading ? "wait" : "pointer",
+                  cursor: uploading || !firebaseReady ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
                   width: "100%",
                 }}
                 onMouseEnter={(e) => {
-                  if (!uploading) e.currentTarget.style.borderColor = "var(--color-primary)";
+                  if (!uploading && firebaseReady) e.currentTarget.style.borderColor = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!uploading) e.currentTarget.style.borderColor = "var(--color-border)";
+                  if (!uploading && firebaseReady) e.currentTarget.style.borderColor = "var(--color-border)";
                 }}
               >
                 {uploading ? (
                   <Loader2 size={28} style={{ color: "var(--color-primary)", animation: "spin 1s linear infinite" }} />
                 ) : (
-                  <Upload size={28} style={{ color: uploadError ? "var(--color-error)" : "var(--color-text-muted)" }} />
+                  <Upload size={28} style={{ color: uploadError || !firebaseReady ? "var(--color-error)" : "var(--color-text-muted)" }} />
                 )}
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }}>
-                    {uploading ? "Uploading..." : "Upload PDF"}
+                    {uploading ? "Uploading..." : !firebaseReady ? "Storage not configured" : "Upload PDF"}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
                     PDF up to 10MB
                   </div>
                 </div>
               </button>
+            )}
+
+            {!firebaseReady && !data.fileId && (
+              <div style={{
+                fontSize: "0.8125rem",
+                color: "var(--color-text-muted)",
+                padding: "0.5rem 0.75rem",
+                borderRadius: "var(--radius-md)",
+                background: "rgba(245, 158, 11, 0.08)",
+                border: "1px solid rgba(245, 158, 11, 0.25)",
+              }}>
+                Set your Firebase Storage keys (NEXT_PUBLIC_FIREBASE_*) in .env.local / Vercel to enable PDF uploads.
+              </div>
             )}
 
             {uploadError && (

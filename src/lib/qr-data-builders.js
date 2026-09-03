@@ -97,8 +97,8 @@ export function buildWhatsAppString({ phone = "", message = "" }) {
 
 /**
  * Build the full URL string for a document upload.
- * The `url` field is an absolute or relative path to the served file
- * (e.g. `/api/files/<id>`). The QR code will encode this URL.
+ * `url` is the Firebase Storage download URL (absolute). The QR code will
+ * encode this URL directly.
  */
 export function buildDocumentString({ url = "" }) {
   return url || "";

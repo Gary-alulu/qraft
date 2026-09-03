@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Public read: lets anyone scan a QR and open the PDF without login.
+    match /qrfiles/{allPaths=**} {
+      allow read: if true;
+      // Anonymous write into the qrfiles folder only. The client limits files
+      // to PDFs <= 10MB. Restrict by size and content-type as a defense in depth.
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                    && request.resource.contentType.matches('application/pdf');
+    }
+
+    // Everything else is locked down.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
