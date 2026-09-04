@@ -17,8 +17,9 @@ function StudioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  const typeParam = searchParams.get("type");
 
-  const [activeType, setActiveType] = useState("website");
+  const [activeType, setActiveType] = useState(typeParam || "website");
   const [formData, setFormData] = useState({});
   const [isDynamic, setIsDynamic] = useState(false);
   const [saving, setSaving] = useState(false);

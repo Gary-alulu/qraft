@@ -21,6 +21,7 @@ yarn-error.log*
 .pnpm-debug.log*
 dev.log
 dev2.log
+*.log
 
 # local env files — NEVER commit secrets
 .env
@@ -36,3 +37,6 @@ dev2.log
 # typescript / eslint
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+.env*

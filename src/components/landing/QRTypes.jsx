@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
 import {
   Globe,
   Link2,
@@ -36,62 +37,62 @@ const categories = [
     name: "Links",
     color: "#00D4FF",
     items: [
-      { Icon: Globe, label: "Website", desc: "Link to any URL" },
-      { Icon: Link2, label: "Dynamic URL", desc: "Changeable destination" },
-      { Icon: FileText, label: "Landing Page", desc: "Qraft-hosted page" },
-      { Icon: User, label: "Social Profile", desc: "All social links" },
-      { Icon: Smartphone, label: "App Link", desc: "App store redirect" },
+      { id: "website", Icon: Globe, label: "Website", desc: "Link to any URL" },
+      { id: "dynamic", Icon: Link2, label: "Dynamic URL", desc: "Changeable destination" },
+      { id: "landing_page", Icon: FileText, label: "Landing Page", desc: "Qraft-hosted page" },
+      { id: "social", Icon: User, label: "Social Profile", desc: "All social links" },
+      { id: "app_link", Icon: Smartphone, label: "App Link", desc: "App store redirect" },
     ],
   },
   {
     name: "Contact",
     color: "#7C3AED",
     items: [
-      { Icon: Contact, label: "vCard", desc: "Digital business card" },
-      { Icon: Phone, label: "Phone", desc: "Direct call" },
-      { Icon: Mail, label: "Email", desc: "Pre-filled email" },
-      { Icon: MessageSquare, label: "SMS", desc: "Text message" },
-      { Icon: MessageCircle, label: "WhatsApp", desc: "WhatsApp message" },
+      { id: "vcard", Icon: Contact, label: "vCard", desc: "Digital business card" },
+      { id: "phone", Icon: Phone, label: "Phone", desc: "Direct call" },
+      { id: "email", Icon: Mail, label: "Email", desc: "Pre-filled email" },
+      { id: "sms", Icon: MessageSquare, label: "SMS", desc: "Text message" },
+      { id: "whatsapp", Icon: MessageCircle, label: "WhatsApp", desc: "WhatsApp message" },
     ],
   },
   {
     name: "Business",
     color: "#FF6B2C",
     items: [
-      { Icon: Building2, label: "Business Profile", desc: "Company info" },
-      { Icon: Star, label: "Reviews", desc: "Get customer reviews" },
-      { Icon: Utensils, label: "Menu", desc: "Restaurant menu" },
-      { Icon: Package, label: "Product", desc: "Product details" },
-      { Icon: ClipboardList, label: "Feedback", desc: "Collect feedback" },
+      { id: "business", Icon: Building2, label: "Business Profile", desc: "Company info" },
+      { id: "review", Icon: Star, label: "Reviews", desc: "Get customer reviews" },
+      { id: "menu", Icon: Utensils, label: "Menu", desc: "Restaurant menu" },
+      { id: "product", Icon: Package, label: "Product", desc: "Product details" },
+      { id: "feedback", Icon: ClipboardList, label: "Feedback", desc: "Collect feedback" },
     ],
   },
   {
     name: "Events",
     color: "#10B981",
     items: [
-      { Icon: Calendar, label: "Event", desc: "Event details" },
-      { Icon: CalendarDays, label: "Calendar", desc: "Add to calendar" },
-      { Icon: CheckCircle2, label: "RSVP", desc: "Event registration" },
-      { Icon: Ticket, label: "Ticket", desc: "Event ticket" },
+      { id: "event", Icon: Calendar, label: "Event", desc: "Event details" },
+      { id: "calendar", Icon: CalendarDays, label: "Calendar", desc: "Add to calendar" },
+      { id: "rsvp", Icon: CheckCircle2, label: "RSVP", desc: "Event registration" },
+      { id: "ticket", Icon: Ticket, label: "Ticket", desc: "Event ticket" },
     ],
   },
   {
     name: "Payments",
     color: "#EC4899",
     items: [
-      { Icon: CreditCard, label: "Payment Link", desc: "Accept payments" },
-      { Icon: Landmark, label: "M-Pesa", desc: "Mobile money" },
-      { Icon: Banknote, label: "PayPal", desc: "PayPal payment" },
+      { id: "payment_link", Icon: CreditCard, label: "Payment Link", desc: "Accept payments" },
+      { id: "mpesa", Icon: Landmark, label: "M-Pesa", desc: "Mobile money" },
+      { id: "paypal", Icon: Banknote, label: "PayPal", desc: "PayPal payment" },
     ],
   },
   {
     name: "Utilities",
     color: "#F59E0B",
     items: [
-      { Icon: Wifi, label: "Wi-Fi", desc: "Share Wi-Fi access" },
-      { Icon: MapPin, label: "Location", desc: "Map location" },
-      { Icon: StickyNote, label: "Text", desc: "Plain text" },
-      { Icon: Paperclip, label: "PDF / File", desc: "File download" },
+      { id: "wifi", Icon: Wifi, label: "Wi-Fi", desc: "Share Wi-Fi access" },
+      { id: "location", Icon: MapPin, label: "Location", desc: "Map location" },
+      { id: "text", Icon: StickyNote, label: "Text", desc: "Plain text" },
+      { id: "document", Icon: Paperclip, label: "PDF / File", desc: "File download" },
     ],
   },
 ];
@@ -207,8 +208,9 @@ export default function QRTypes() {
               </div>
               <div style={{ padding: "0.5rem" }}>
                 {cat.items.map((item) => (
-                  <div
+                  <Link
                     key={item.label}
+                    href={`/studio?type=${item.id}`}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -217,6 +219,7 @@ export default function QRTypes() {
                       borderRadius: "var(--radius-md)",
                       cursor: "pointer",
                       transition: "background 0.15s",
+                      textDecoration: "none",
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.background = "var(--color-surface-hover)")
@@ -259,7 +262,7 @@ export default function QRTypes() {
                         {item.desc}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </motion.div>

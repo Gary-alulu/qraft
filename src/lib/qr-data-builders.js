@@ -104,11 +104,28 @@ export function buildDocumentString({ url = "" }) {
   return url || "";
 }
 
+export function buildPayPalString({ username = "", amount = "" }) {
+  if (!username) return "https://paypal.me";
+  return amount ? `https://paypal.me/${username}/${amount}` : `https://paypal.me/${username}`;
+}
+
+export function buildMpesaString({ till = "", amount = "" }) {
+  return `M-PESA Till: ${till || ""}\nAmount: ${amount || ""}`;
+}
+
+export function buildGenericUrlString(data = {}) {
+  return data.url || "https://qraft.app";
+}
+
 /**
  * Get the builder function for a given QR type
  */
 export const DATA_BUILDERS = {
   website: buildWebsiteString,
+  dynamic: buildGenericUrlString,
+  landing_page: buildGenericUrlString,
+  social: buildGenericUrlString,
+  app_link: buildGenericUrlString,
   text: buildTextString,
   wifi: buildWiFiString,
   vcard: buildVCardString,
@@ -116,7 +133,18 @@ export const DATA_BUILDERS = {
   sms: buildSMSString,
   phone: buildPhoneString,
   event: buildEventString,
+  calendar: buildEventString,
+  rsvp: buildGenericUrlString,
+  ticket: buildGenericUrlString,
   location: buildLocationString,
   whatsapp: buildWhatsAppString,
   document: buildDocumentString,
+  business: buildGenericUrlString,
+  review: buildGenericUrlString,
+  menu: buildGenericUrlString,
+  product: buildGenericUrlString,
+  feedback: buildGenericUrlString,
+  payment_link: buildGenericUrlString,
+  mpesa: buildMpesaString,
+  paypal: buildPayPalString,
 };
