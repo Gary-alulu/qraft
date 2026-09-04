@@ -78,6 +78,10 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       handleDataChange("url", urlData.publicUrl);
       handleDataChange("filename", file.name);
       handleDataChange("fileId", urlData.path);
+
+      // Immediately update the QR to encode the uploaded PDF's public URL
+      // so the user doesn't need to click Generate separately.
+      onGenerate(urlData.publicUrl);
     } catch (err) {
       setUploadError(err.message || "Upload failed");
     } finally {
