@@ -3,28 +3,31 @@
  * Convert form data into QR-compatible strings for each content type.
  */
 
-export function buildWebsiteString(url) {
-  return url || "";
+export function buildWebsiteString(data) {
+  if (typeof data === "string") return data;
+  return data?.url || "";
 }
 
-export function buildTextString(text) {
-  return text || "";
+export function buildTextString(data) {
+  if (typeof data === "string") return data;
+  return data?.text || "";
 }
 
-export function buildWiFiString({ ssid, password, security = "WPA", hidden = false }) {
+export function buildWiFiString({ ssid, password, security = "WPA", hidden = false } = {}) {
   return `WIFI:S:${ssid || ""};T:${security};P:${password || ""};H:${hidden ? "true" : "false"};;`;
 }
 
-export function buildVCardString({
-  firstName = "",
-  lastName = "",
-  phone = "",
-  email = "",
-  website = "",
-  company = "",
-  title = "",
-  address = "",
-}) {
+export function buildVCardString(data = {}) {
+  const {
+    firstName = "",
+    lastName = "",
+    phone = "",
+    email = "",
+    website = "",
+    company = "",
+    title = "",
+    address = "",
+  } = data || {};
   return [
     "BEGIN:VCARD",
     "VERSION:3.0",
@@ -42,19 +45,24 @@ export function buildVCardString({
     .join("\n");
 }
 
-export function buildEmailString({ to = "", subject = "", body = "" }) {
+export function buildEmailString(data = {}) {
+  if (typeof data === "string") return `mailto:${data}`;
+  const { to = "", subject = "", body = "" } = data || {};
   const params = [];
   if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
   if (body) params.push(`body=${encodeURIComponent(body)}`);
-  return `mailto:${to}${params.length ? "?" + params.join("&") : ""}`;
+  return to ? `mailto:${to}${params.length ? "?" + params.join("&") : ""}` : "";
 }
 
-export function buildSMSString({ phone = "", message = "" }) {
-  return `smsto:${phone}:${message}`;
+export function buildSMSString(data = {}) {
+  if (typeof data === "string") return `smsto:${data}:`;
+  const { phone = "", message = "" } = data || {};
+  return phone ? `smsto:${phone}:${message}` : "";
 }
 
-export function buildPhoneString(phone) {
-  return `tel:${phone || ""}`;
+export function buildPhoneString(data) {
+  const p = typeof data === "string" ? data : data?.phone || "";
+  return p ? `tel:${p}` : "";
 }
 
 export function buildEventString({

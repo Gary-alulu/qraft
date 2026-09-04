@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -26,7 +26,13 @@ function StudioContent() {
   const [saveStatus, setSaveStatus] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
 
-  const { data, setData, options, updateOptions, attachTo, download, scanability } = useQRGenerator();
+  const scanabilityContext = useMemo(() => ({
+    type: activeType,
+    contentData: formData[activeType] || {},
+    isDynamic,
+  }), [activeType, formData, isDynamic]);
+
+  const { data, setData, options, updateOptions, attachTo, download, scanability } = useQRGenerator("https://qraft.app", scanabilityContext);
 
   // Load existing QR data if editing
   useEffect(() => {

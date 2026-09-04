@@ -143,16 +143,31 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
   };
 
   const handleRemoveFile = () => {
-    handleDataChange("url", "");
-    handleDataChange("filename", "");
-    handleDataChange("fileId", "");
+    setFormData(prev => ({
+      ...prev,
+      [activeType]: {
+        ...prev[activeType],
+        url: "",
+        filename: "",
+        fileId: "",
+      },
+    }));
     setUploadError(null);
+    onGenerate("https://qraft.app");
   };
+
+  // Live-sync QR code data as user types or switches types
+  useEffect(() => {
+    const currentData = formData[activeType] || {};
+    const builder = DATA_BUILDERS[activeType];
+    const dataString = builder ? builder(currentData) : "";
+    onGenerate(dataString || "https://qraft.app");
+  }, [formData, activeType, onGenerate]);
 
   const handleGenerateClick = () => {
     const builder = DATA_BUILDERS[activeType];
     const dataString = builder ? builder(formData[activeType] || {}) : "";
-    onGenerate(dataString);
+    onGenerate(dataString || "https://qraft.app");
   };
 
   const renderForm = () => {

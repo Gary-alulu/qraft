@@ -9,12 +9,20 @@ import {
   triggerDownload,
 } from "@/lib/qr-export";
 
-export default function useQRGenerator(initialData = "https://qraft.app") {
+export default function useQRGenerator(initialData = "https://qraft.app", externalContext = null) {
   const [data, setData] = useState(initialData);
+  const [context, setContext] = useState(externalContext || {});
   const [options, setOptions] = useState(DEFAULT_QR_OPTIONS);
   const [qrInstance, setQrInstance] = useState(null);
   const qrRef = useRef(null);
   const debounceRef = useRef(null);
+
+  // Sync externalContext when provided
+  useEffect(() => {
+    if (externalContext) {
+      setContext(externalContext);
+    }
+  }, [externalContext]);
 
   // Dynamically import qr-code-styling (client-only)
   useEffect(() => {
@@ -187,12 +195,14 @@ export default function useQRGenerator(initialData = "https://qraft.app") {
     return await blob?.text();
   }, [qrInstance]);
 
-  // Scanability score
-  const scanability = analyzeScanability(options);
+  // Scanability score accurately computed with options, data, and form/upload context
+  const scanability = analyzeScanability(options, data, externalContext || context);
 
   return {
     data,
     setData,
+    context,
+    setContext,
     options,
     setOptions,
     updateOptions,
