@@ -47,6 +47,20 @@ export function validateDestinationUrl(rawUrl, allowedHosts = null) {
   const hostname = parsed.hostname;
   if (!hostname) return null;
 
+  // Supabase Storage is always allowed — the app hosts uploaded PDF/document
+  // files there and links to them via public URLs for dynamic QR redirects.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    try {
+      const supabaseHost = new URL(supabaseUrl).hostname;
+      if (hostname === supabaseHost || hostname.endsWith("." + supabaseHost)) {
+        return parsed.toString();
+      }
+    } catch {
+      // ignore malformed Supabase URL; fall through to allow-list logic
+    }
+  }
+
   // If an allow-list is configured, enforce it. A null/empty allow-list
   // disables host restriction (allows any http(s) host).
   if (Array.isArray(allowedHosts) && allowedHosts.length > 0) {
