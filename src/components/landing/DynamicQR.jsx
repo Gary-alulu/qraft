@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
+import Button from "@/components/ui/Button";
 
 const steps = [
   { num: "01", title: "Create", desc: "Generate a dynamic QR code with a unique short URL", color: "var(--color-secondary)" },
@@ -23,7 +24,7 @@ const features = [
 
 export default function DynamicQR() {
   return (
-    <section className="section-padding">
+    <section id="dynamic" className="section-padding">
       <div className="container-qraft">
         <div
           style={{
@@ -119,6 +120,18 @@ export default function DynamicQR() {
                 </motion.div>
               ))}
             </div>
+
+            {/* CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              style={{ marginTop: "2rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
+            >
+              <Button variant="primary" href="/studio">Create a Dynamic QR</Button>
+              <Button variant="ghost" href="/register">Start Free</Button>
+            </motion.div>
           </motion.div>
 
           {/* Right — Visual */}

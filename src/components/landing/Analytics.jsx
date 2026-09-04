@@ -23,7 +23,7 @@ const devices = [
 
 export default function Analytics() {
   return (
-    <section className="section-padding" style={{ background: "var(--color-bg-dark)", color: "white" }}>
+    <section id="analytics" className="section-padding" style={{ background: "var(--color-bg-dark)", color: "white" }}>
       <div className="container-qraft">
         <div
           style={{

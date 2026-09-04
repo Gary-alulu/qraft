@@ -57,7 +57,7 @@ export default function FAQ() {
         
         <div style={{ textAlign: "center", marginTop: "3rem" }}>
           <p style={{ color: "var(--color-text-secondary)", marginBottom: "1rem" }}>Still have questions?</p>
-          <Button variant="secondary">Contact Support</Button>
+          <Button variant="secondary" href="/contact">Contact Support</Button>
         </div>
       </div>
     </section>

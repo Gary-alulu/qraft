@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Button from "@/components/ui/Button";
 import {
   Globe,
   Link2,
@@ -263,6 +264,10 @@ export default function QRTypes() {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "3rem" }}>
+          <Button variant="primary" size="lg" href="/studio">Build Your QR Code</Button>
         </div>
       </div>
     </section>

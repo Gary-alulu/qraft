@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Toggle from "@/components/ui/Toggle";
 import { Globe, Wifi, Contact, Mail, Calendar, FileText, Upload, Check, Loader2, X } from "lucide-react";
 import { DATA_BUILDERS } from "@/lib/qr-data-builders";
-import { supabase, supabaseUrl, isSupabaseConfigured, DOCUMENTS_BUCKET } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, DOCUMENTS_BUCKET } from "@/lib/supabase";
 
 export default function QRTypeSelector({ activeType, setActiveType, formData, setFormData, onGenerate, isDynamic, setIsDynamic }) {
   const [uploading, setUploading] = useState(false);
@@ -51,33 +51,33 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
         throw new Error("File exceeds 10MB limit");
       }
 
-      // Upload directly from the browser to Supabase Storage. This bypasses
-      // Vercel's 4.5MB serverless request limit entirely.
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const storagePath = `${Date.now()}-${safeName}`;
+      // 1. Get a signed upload URL from our API (service-role signed, bypasses
+      //    anonymous RLS). This round-trips only tiny JSON through Vercel.
+      const urlRes = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, size: file.size }),
+      });
+      const urlData = await urlRes.json();
+      if (!urlRes.ok) {
+        throw new Error(urlData.error || "Could not start upload");
+      }
 
+      // 2. Upload the PDF directly to Supabase using the signed URL —
+      //    bypasses Vercel's 4.5MB serverless request body limit entirely.
       const { error: uploadError } = await supabase.storage
         .from(DOCUMENTS_BUCKET)
-        .upload(storagePath, file, {
+        .uploadToSignedUrl(urlData.path, urlData.token, file, {
           contentType: "application/pdf",
-          cacheControl: "3600",
-          upsert: false,
         });
 
       if (uploadError) {
         throw new Error(uploadError.message || "Upload failed");
       }
 
-      // Public bucket => stable public URL anyone can open by scanning the QR.
-      const { data: publicUrlData } = supabase.storage
-        .from(DOCUMENTS_BUCKET)
-        .getPublicUrl(storagePath);
-
-      const downloadUrl = publicUrlData?.publicUrl || `${supabaseUrl}/storage/v1/object/public/${DOCUMENTS_BUCKET}/${storagePath}`;
-
-      handleDataChange("url", downloadUrl);
+      handleDataChange("url", urlData.publicUrl);
       handleDataChange("filename", file.name);
-      handleDataChange("fileId", storagePath);
+      handleDataChange("fileId", urlData.path);
     } catch (err) {
       setUploadError(err.message || "Upload failed");
     } finally {

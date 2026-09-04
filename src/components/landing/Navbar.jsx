@@ -134,7 +134,7 @@ export default function Navbar() {
           style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
           className="nav-ctas-desktop"
         >
-          <Button variant="ghost" size="sm" href="/studio">
+          <Button variant="ghost" size="sm" href="/login">
             Log in
           </Button>
           <Button variant="primary" size="sm" href="/studio">
@@ -234,7 +234,7 @@ export default function Navbar() {
             ))}
             <hr style={{ border: "none", borderTop: "1px solid var(--color-border-light)", margin: "0.5rem 0" }} />
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <Button variant="secondary" size="md" href="/studio" style={{ flex: 1 }}>
+              <Button variant="secondary" size="md" href="/login" style={{ flex: 1 }}>
                 Log in
               </Button>
               <Button variant="primary" size="md" href="/studio" style={{ flex: 1 }}>

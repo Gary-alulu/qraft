@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Button from "@/components/ui/Button";
 
 const templates = [
   { name: "Minimal Business", cat: "Business", color: "#1E3A5F" },
@@ -80,6 +81,10 @@ export default function Templates() {
               <h3 style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--color-text)" }}>{tpl.name}</h3>
             </motion.div>
           ))}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "3rem" }}>
+          <Button variant="primary" size="lg" href="/studio">Browse All Templates</Button>
         </div>
       </div>
     </section>
