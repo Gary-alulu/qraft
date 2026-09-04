@@ -174,8 +174,8 @@ function StudioContent() {
               </motion.div>
             )}
           </AnimatePresence>
-          <Button variant="primary" size="sm" onClick={handleSave} loading={saving} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Save size={16} /> {session ? (editId ? "Update QR Code" : "Save to Dashboard") : "Sign in to Save"}
+          <Button variant="accent" size="md" onClick={handleSave} loading={saving} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 600 }}>
+            <Save size={18} /> {session ? (editId ? "Update QR Code" : "Save to Dashboard") : "Sign in to Save"}
           </Button>
           {session ? (
             <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 600 }}>

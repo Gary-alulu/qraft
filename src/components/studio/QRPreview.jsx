@@ -13,10 +13,10 @@ export default function QRPreview({ qrRef, scanability, onDownload, type = "webs
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "500px", position: "relative" }}>
       <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 style={{ fontSize: "1.125rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>Live Preview</h2>
-        <Button size="sm" variant="primary" onClick={() => setIsExportOpen(true)} style={{ display: "flex", gap: "0.5rem" }}>
-          <Download size={16} />
-          Export
+        <h2 style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>Live Preview</h2>
+        <Button size="md" variant="secondary" onClick={() => setIsExportOpen(true)} style={{ display: "flex", gap: "0.5rem", fontWeight: 600, boxShadow: "var(--shadow-sm)" }}>
+          <Download size={18} />
+          Export QR
         </Button>
       </div>
       
