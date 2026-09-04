@@ -27,7 +27,9 @@ const productionCSP = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   // blob: needed for QR code downloads (canvas.toBlob URL.createObjectURL)
   // data: needed for inline SVG / font fallbacks
-  "connect-src 'self' blob: data:",
+  // https://*.supabase.co needed for direct browser PDF uploads to Supabase
+  // Storage (signed URL PUT) and Supabase REST calls.
+  "connect-src 'self' blob: data: https://*.supabase.co",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
