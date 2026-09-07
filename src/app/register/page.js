@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { getSupabaseBrowser, isSupabaseAuthConfigured } from "@/lib/supabase-browser";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -12,41 +12,45 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setMessage("");
+
+    if (!isSupabaseAuthConfigured()) {
+      setError("Authentication is not configured yet. Please contact support.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      // 1. Register the user via our API
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+      const supabase = getSupabaseBrowser();
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name },
+        },
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
+      if (signUpError) {
+        setError(signUpError.message || "Registration failed");
         setLoading(false);
         return;
       }
 
-      // 2. Auto-login after successful registration
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        // Registration succeeded but auto-login failed; redirect to login
-        window.location.href = "/login";
-      } else {
+      if (data?.session) {
+        // Session created immediately -> straight to dashboard.
         window.location.href = "/dashboard";
+        return;
       }
+
+      // Email confirmation required.
+      setMessage("Check your email to confirm your account before signing in.");
+      setLoading(false);
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -54,18 +58,18 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "1.5rem" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "1.5rem", maxHeight: "100vh", overflowY: "auto", margin: "0 auto" }}>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ width: "100%", maxWidth: "420px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "2.5rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)" }}
+        style={{ width: "100%", maxWidth: "400px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "1.75rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)", margin: "auto" }}
       >
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", marginBottom: "1.5rem" }}>
-            <span style={{ color: "white", fontWeight: 700, fontSize: "1.25rem" }}>Q</span>
+        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", marginBottom: "1rem" }}>
+            <span style={{ color: "white", fontWeight: 700, fontSize: "1.125rem" }}>Q</span>
           </div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", fontWeight: 700, color: "var(--color-text)" }}>Create an account</h1>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9375rem", marginTop: "0.5rem" }}>Start generating beautiful QR codes</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--color-text)" }}>Create an account</h1>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>Start generating beautiful QR codes</p>
         </div>
 
         {error && (
@@ -82,7 +86,21 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {message && (
+          <div style={{ 
+            background: "rgba(0, 212, 255, 0.08)", 
+            color: "var(--color-secondary-dark)", 
+            padding: "0.75rem 1rem", 
+            borderRadius: "var(--radius-md)", 
+            fontSize: "0.875rem", 
+            marginBottom: "1.25rem",
+            border: "1px solid rgba(0, 212, 255, 0.25)"
+          }}>
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <Input 
             label="Name" 
             placeholder="Gary" 
@@ -106,12 +124,12 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)} 
             required 
           />
-          <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginTop: "0.5rem" }}>
+          <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginTop: "0.25rem" }}>
             Sign Up
           </Button>
         </form>
 
-        <div style={{ marginTop: "2rem", textAlign: "center", fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
+        <div style={{ marginTop: "1.25rem", textAlign: "center", fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>
           Already have an account? <a href="/login" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>Sign in</a>
         </div>
       </motion.div>

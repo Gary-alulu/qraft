@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { getSupabaseBrowser, isSupabaseAuthConfigured } from "@/lib/supabase-browser";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,19 +17,26 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
+    if (!isSupabaseAuthConfigured()) {
+      setError("Authentication is not configured yet. Please contact support.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const result = await signIn("credentials", {
+      const supabase = getSupabaseBrowser();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid email or password");
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password");
         setLoading(false);
-      } else {
-        window.location.href = "/dashboard";
+        return;
       }
+
+      window.location.href = "/dashboard";
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -37,18 +44,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "1.5rem" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "1.5rem", maxHeight: "100vh", overflowY: "auto", margin: "0 auto" }}>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ width: "100%", maxWidth: "420px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "2.5rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)" }}
+        style={{ width: "100%", maxWidth: "400px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "1.75rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)", margin: "auto" }}
       >
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", marginBottom: "1.5rem" }}>
-            <span style={{ color: "white", fontWeight: 700, fontSize: "1.25rem" }}>Q</span>
+        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", marginBottom: "1rem" }}>
+            <span style={{ color: "white", fontWeight: 700, fontSize: "1.125rem" }}>Q</span>
           </div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", fontWeight: 700, color: "var(--color-text)" }}>Welcome back</h1>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9375rem", marginTop: "0.5rem" }}>Sign in to your Qraft account</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--color-text)" }}>Welcome back</h1>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>Sign in to your Qraft account</p>
         </div>
 
         {error && (
@@ -65,7 +72,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <Input 
             label="Email" 
             type="email" 
@@ -82,12 +89,12 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)} 
             required 
           />
-          <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginTop: "0.5rem" }}>
+          <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginTop: "0.25rem" }}>
             Sign In
           </Button>
         </form>
 
-        <div style={{ marginTop: "2rem", textAlign: "center", fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
+        <div style={{ marginTop: "1.25rem", textAlign: "center", fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>
           Don&apos;t have an account? <a href="/register" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>Sign up</a>
         </div>
       </motion.div>

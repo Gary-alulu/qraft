@@ -212,6 +212,21 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
                       <div>
                         <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--color-text)" }}>{code.name}</h3>
                         <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>{code.type}</p>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            marginTop: "0.375rem",
+                            padding: "0.2rem 0.6rem",
+                            borderRadius: "var(--radius-pill)",
+                            fontSize: "0.65rem",
+                            fontWeight: 600,
+                            whiteSpace: "nowrap",
+                            background: code.isDynamic ? "rgba(0, 212, 255, 0.12)" : "rgba(148, 163, 184, 0.12)",
+                            color: code.isDynamic ? "var(--color-secondary-dark)" : "var(--color-text-muted)",
+                          }}
+                        >
+                          {code.isDynamic ? "● Dynamic" : "● Static · Not trackable"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -227,7 +242,11 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
                   <div style={{ height: "1px", background: "var(--color-border-light)" }} />
                   
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                     <Link href={`/r/${code.id}`} style={{ fontSize: "0.8125rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>Test Link</Link>
+                     {code.isDynamic ? (
+                       <Link href={`/r/${code.id}`} style={{ fontSize: "0.8125rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>Test Link</Link>
+                     ) : (
+                       <span style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Not trackable</span>
+                     )}
                      <Link href={`/studio?edit=${code.id}`} style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", textDecoration: "none", fontWeight: 500 }}>Edit</Link>
                   </div>
                 </div>

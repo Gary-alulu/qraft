@@ -3,16 +3,15 @@
 import { motion } from "motion/react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function ScansChart({ data }) {
-  // Mock data if none provided
-  const chartData = data || [
-    { name: "Mon", scans: 120 },
-    { name: "Tue", scans: 250 },
-    { name: "Wed", scans: 180 },
-    { name: "Thu", scans: 400 },
-    { name: "Fri", scans: 350 },
-    { name: "Sat", scans: 480 },
-    { name: "Sun", scans: 600 },
+export default function ScansChart({ data = [] }) {
+  const chartData = Array.isArray(data) && data.length > 0 ? data : [
+    { name: "Mon", scans: 0 },
+    { name: "Tue", scans: 0 },
+    { name: "Wed", scans: 0 },
+    { name: "Thu", scans: 0 },
+    { name: "Fri", scans: 0 },
+    { name: "Sat", scans: 0 },
+    { name: "Sun", scans: 0 },
   ];
 
   return (

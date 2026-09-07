@@ -5,17 +5,16 @@ import { motion, AnimatePresence } from "motion/react";
 import Button from "@/components/ui/Button";
 import ScanabilityScore from "./ScanabilityScore";
 import ExportPanel from "./ExportPanel";
-import { Download, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function QRPreview({ qrRef, scanability, onDownload, type = "website" }) {
   const [isExportOpen, setIsExportOpen] = useState(false);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "500px", position: "relative" }}>
-      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.75rem", marginTop: "1.5rem", marginBottom: "1.5rem" }}>
         <h2 style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>Live Preview</h2>
-        <Button size="md" variant="secondary" onClick={() => setIsExportOpen(true)} style={{ display: "flex", gap: "0.5rem", fontWeight: 600, boxShadow: "var(--shadow-sm)" }}>
-          <Download size={18} />
+        <Button size="sm" variant="secondary" onClick={() => setIsExportOpen(true)} style={{ fontWeight: 600, boxShadow: "var(--shadow-sm)" }}>
           Export QR
         </Button>
       </div>

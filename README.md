@@ -111,7 +111,6 @@ explanations). Required:
 | Variable                     | Purpose                                        |
 | ---------------------------- | ---------------------------------------------- |
 | `MONGODB_URI`                | MongoDB / Atlas connection string              |
-| `AUTH_SECRET`                | NextAuth session JWT secret                    |
 | `NEXT_PUBLIC_SUPABASE_URL`   | Supabase project URL (client)                  |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (client)                  |
 | `SUPABASE_SERVICE_ROLE_KEY`  | Supabase service-role key (server only)        |
@@ -122,6 +121,22 @@ Optional:
 | ------------------------------ | ---------------------------------------------- |
 | `REDIRECT_ALLOWED_HOSTS`       | Allow-list of hosts for dynamic QR redirects   |
 | `CRON_SECRET`                  | Protects the document-cleanup cron endpoint    |
+
+### Authentication (Supabase Auth)
+
+All sign-in methods (email/password plus OAuth with Google, GitHub, Discord and
+X/Twitter) are handled by [Supabase Auth](https://supabase.com/docs/guides/auth).
+Nothing needs to be configured in code — enable providers in the Supabase
+dashboard, then add these redirect URLs under
+`Authentication → URL Configuration`, replacing the origin for production:
+
+```
+http://localhost:3000/api/auth/callback
+https://<your-domain>.vercel.app/api/auth/callback
+```
+
+New OAuth users are auto-provisioned as Mongo users (matched by email), so QR
+codes and analytics stay tied to the same account across sign-in methods.
 
 Note: the Supabase bucket must be named `pdf` (lowercase) and public.
 

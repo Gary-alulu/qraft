@@ -12,6 +12,19 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
 
   const tableData = codes || [];
 
+  const TrackableBadge = ({ isDynamic }) =>
+    isDynamic ? (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.7rem", borderRadius: "var(--radius-pill)", background: "rgba(0, 212, 255, 0.12)", color: "var(--color-secondary-dark)", fontSize: "0.7rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--color-secondary)" }} />
+        Dynamic
+      </span>
+    ) : (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.7rem", borderRadius: "var(--radius-pill)", background: "rgba(148, 163, 184, 0.12)", color: "var(--color-text-muted)", fontSize: "0.7rem", fontWeight: 600, whiteSpace: "nowrap" }} title="Generated as a static code — scans are not trackable">
+        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--color-text-muted)" }} />
+        Static · Not trackable
+      </span>
+    );
+
   const handleArchive = async (id) => {
     setLoadingId(id);
     setOpenDropdownId(null);
@@ -58,7 +71,8 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
           title: `${code.name} (copy)`,
           type: code.type,
           contentData: code.contentData || {},
-          isDynamic: false,
+          isDynamic: !!code.isDynamic,
+          destinationUrl: code.isDynamic ? (code.destinationUrl || null) : undefined,
         }),
       });
       const result = await res.json();
@@ -70,6 +84,7 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
           type: result.data.type,
           scans: 0,
           status: result.data.status,
+          isDynamic: !!result.data.isDynamic,
           folderId: null,
         };
         onUpdate(newCode); // parent can choose to append
@@ -104,6 +119,7 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
             <tr style={{ background: "rgba(0,0,0,0.02)" }}>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Name</th>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Type</th>
+              <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Tracking</th>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Scans</th>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Status</th>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Actions</th>
@@ -121,6 +137,9 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
                   </div>
                 </td>
                 <td style={{ padding: "1rem 1.5rem", color: "var(--color-text-secondary)", fontSize: "0.875rem" }}>{code.type}</td>
+                <td style={{ padding: "1rem 1.5rem" }}>
+                  <TrackableBadge isDynamic={code.isDynamic} />
+                </td>
                 <td style={{ padding: "1rem 1.5rem", fontWeight: 600 }}>{code.scans.toLocaleString()}</td>
                 <td style={{ padding: "1rem 1.5rem" }}>
                   <Badge variant={code.status === "active" ? "success" : "warning"}>{code.status}</Badge>
@@ -131,7 +150,7 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
                       <Loader2 size={18} className="animate-spin" />
                     ) : (
                       <>
-                        {code.status === "active" && (
+                        {code.status === "active" && code.isDynamic && (
                           <a href={`/r/${code.id}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }} title="Test Link">
                             <ExternalLink size={18} />
                           </a>

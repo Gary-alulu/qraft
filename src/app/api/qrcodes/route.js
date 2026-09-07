@@ -26,26 +26,42 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { title, type, contentData, isDynamic, destinationUrl, designOptions, folderId } = body;
+const body = await req.json();
+      const { title, type, contentData, isDynamic, destinationUrl, designOptions, folderId } = body;
 
-    // Validate redirect target before storing (for dynamic codes).
-    const allowedHosts = parseAllowedHosts();
-    let safeDestination = null;
-    if (isDynamic) {
-      safeDestination = validateDestinationUrl(destinationUrl, allowedHosts);
-      if (!safeDestination) {
+      await dbConnect();
+
+      // Daily free-tier limit: 5 QR codes per user per day.
+      const DAILY_QR_LIMIT = 5;
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const createdToday = await QRCode.countDocuments({
+        userId: session.user.id,
+        createdAt: { $gte: startOfDay },
+      });
+
+      if (createdToday >= DAILY_QR_LIMIT) {
         return NextResponse.json(
-          { error: "Invalid or disallowed destination URL" },
-          { status: 400 }
+          { error: "Daily limit reached. Please try again tomorrow." },
+          { status: 429 }
         );
       }
-    }
 
-    await dbConnect();
+      // Validate redirect target before storing (for dynamic codes).
+      const allowedHosts = parseAllowedHosts();
+      let safeDestination = null;
+      if (isDynamic) {
+        safeDestination = validateDestinationUrl(destinationUrl, allowedHosts);
+        if (!safeDestination) {
+          return NextResponse.json(
+            { error: "Invalid or disallowed destination URL" },
+            { status: 400 }
+          );
+        }
+      }
 
-    // 1. Create the QRCode document (secure, high-entropy short slug).
-    const newQr = await QRCode.create({
+      // 1. Create the QRCode document (secure, high-entropy short slug).
+      const newQr = await QRCode.create({
       userId: session.user.id,
       title: title || "Untitled QR Code",
       type,

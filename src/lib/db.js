@@ -31,8 +31,12 @@ async function dbConnect() {
   if (!cached.promise) {
     cached.promise = mongoose.connect(getUri(), {
       bufferCommands: false,
-      // Atlas-friendly timeouts for serverless cold starts
-      serverSelectionTimeoutMS: 5000,
+      // Atlas-friendly timeouts for serverless cold starts.
+      // serverSelectionTimeoutMS must comfortably exceed realistic connection
+      // time (this project's Atlas connection has been measured up to ~6.5s),
+      // otherwise cold starts sporadically throw MongooseServerSelectionError
+      // and render pages/dashboards that depend on the DB fail.
+      serverSelectionTimeoutMS: 15000,
       socketTimeoutMS: 45000,
     }).then((m) => m);
   }

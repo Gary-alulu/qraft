@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "@/components/providers/AuthProvider";
 import Button from "@/components/ui/Button";
 import { Download } from "lucide-react";
 
 export default function ExportPanel({ onDownload, onClose }) {
   const [format, setFormat] = useState("png");
   const [size, setSize] = useState(1024);
+  const { status } = useSession();
+  const isReady = status === "authenticated";
+  const isLoading = status === "loading";
 
   const formats = [
     { id: "png", label: "PNG", description: "Best for digital use" },
@@ -96,10 +100,40 @@ export default function ExportPanel({ onDownload, onClose }) {
       </div>
 
       <div style={{ marginTop: "0.5rem" }}>
-        <Button variant="primary" style={{ width: "100%", justifyContent: "center", gap: "0.5rem" }} onClick={handleExport}>
-          <Download size={18} />
-          Download {format.toUpperCase()}
-        </Button>
+        {isReady ? (
+          <Button variant="primary" style={{ width: "100%", justifyContent: "center", gap: "0.5rem" }} onClick={handleExport}>
+            <Download size={18} />
+            Download {format.toUpperCase()}
+          </Button>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem",
+              padding: "1.25rem",
+              borderRadius: "var(--radius-lg)",
+              background: "rgba(0, 212, 255, 0.06)",
+              border: "1px solid rgba(0, 212, 255, 0.25)",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)" }}>
+              Create a free account to export your QR code
+            </p>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>
+              New here? Sign up free. Already registered? Sign in to continue.
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <Button variant="primary" href="/register" size="md" style={{ flex: 1, justifyContent: "center", fontWeight: 600 }} disabled={isLoading}>
+                Sign up free
+              </Button>
+              <Button variant="secondary" href="/login" size="md" style={{ flex: 1, justifyContent: "center", fontWeight: 600 }} disabled={isLoading}>
+                Sign in
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -497,22 +497,45 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
 
       <div style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "space-between",
+        gap: "1rem",
         padding: "1rem",
         background: isDynamic ? "rgba(0, 212, 255, 0.05)" : "var(--color-bg)",
         borderRadius: "var(--radius-lg)",
         border: isDynamic ? "1px solid rgba(0, 212, 255, 0.3)" : "1px solid var(--color-border)",
         marginBottom: "1.5rem",
         transition: "all 0.2s ease",
+        overflow: "hidden",
       }}>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--color-text)" }}>Dynamic QR</div>
           <div style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)", marginTop: "0.25rem" }}>
             {isDynamic ? "Trackable & editable after print" : "Static — data baked into the code"}
           </div>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.375rem",
+              marginTop: "0.5rem",
+              maxWidth: "100%",
+              padding: "0.25rem 0.6rem",
+              borderRadius: "var(--radius-pill)",
+              fontSize: "0.7rem",
+              fontWeight: 600,
+              lineHeight: 1.3,
+              background: isDynamic ? "rgba(0, 212, 255, 0.12)" : "rgba(148, 163, 184, 0.12)",
+              color: isDynamic ? "var(--color-secondary-dark)" : "var(--color-text-muted)",
+            }}
+          >
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: isDynamic ? "var(--color-secondary)" : "var(--color-text-muted)", flexShrink: 0 }} />
+            <span>{isDynamic ? "Trackable · scans & analytics enabled" : "Static · not trackable — enable Dynamic QR to track scans"}</span>
+          </div>
         </div>
-        <Toggle checked={isDynamic} onChange={setIsDynamic} />
+        <div style={{ flexShrink: 0 }}>
+          <Toggle checked={isDynamic} onChange={setIsDynamic} />
+        </div>
       </div>
 
       {isDynamic && (

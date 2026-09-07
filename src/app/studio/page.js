@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Save, Check, AlertCircle, Loader2 } from "lucide-react";
+import { Check, AlertCircle, Loader2 } from "lucide-react";
 import StudioLayout from "@/components/studio/StudioLayout";
 import QRTypeSelector from "@/components/studio/QRTypeSelector";
 import QRPreview from "@/components/studio/QRPreview";
@@ -24,6 +24,7 @@ function StudioContent() {
   const [isDynamic, setIsDynamic] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
 
   const scanabilityContext = useMemo(() => ({
@@ -115,7 +116,14 @@ function StudioContent() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) {
+        let message = "Failed to save";
+        try {
+          const errBody = await res.json();
+          if (errBody?.error) message = errBody.error;
+        } catch {}
+        throw new Error(message);
+      }
 
       const result = await res.json();
       setSaveStatus("success");
@@ -130,6 +138,7 @@ function StudioContent() {
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       console.error("Save error:", err);
+      setErrorMessage(err.message || "Save failed");
       setSaveStatus("error");
       setTimeout(() => setSaveStatus(null), 4000);
     } finally {
@@ -170,17 +179,23 @@ function StudioContent() {
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
                 style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)", padding: "0.5rem 1rem", borderRadius: "var(--radius-pill)", fontSize: "0.875rem", fontWeight: 500 }}
               >
-                <AlertCircle size={16} /> Save failed
+                <AlertCircle size={16} /> {errorMessage || "Save failed"}
               </motion.div>
             )}
           </AnimatePresence>
-          <Button variant="accent" size="md" onClick={handleSave} loading={saving} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 600 }}>
-            <Save size={18} /> {session ? (editId ? "Update QR Code" : "Save to Dashboard") : "Sign in to Save"}
+          <Button variant="accent" size="sm" onClick={handleSave} loading={saving} style={{ fontWeight: 600 }}>
+            {session ? (editId ? "Update QR Code" : "Save to Dashboard") : "Sign in to Save"}
           </Button>
           {session ? (
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 600 }}>
-              {session.user?.name?.charAt(0)?.toUpperCase() || "U"}
-            </div>
+            <a
+              href="/dashboard"
+              title="Go to dashboard"
+              style={{ textDecoration: "none" }}
+            >
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", transition: "opacity 0.2s ease" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.8"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>
+                {session.user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+            </a>
           ) : (
             <a href="/login" style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}>Sign In</a>
           )}

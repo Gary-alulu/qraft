@@ -1,14 +1,21 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { LayoutDashboard, QrCode, TrendingUp, Settings, Plus, LogOut } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { signOut } from "next-auth/react";
+import { useSession } from "@/components/providers/AuthProvider";
 
 export default function FloatingNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
 
   const navItems = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -76,7 +83,7 @@ export default function FloatingNav() {
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
       
       <button 
-        onClick={() => signOut({ callbackUrl: "/" })}
+        onClick={handleSignOut}
         style={{ 
           width: "40px", height: "40px", borderRadius: "50%", 
           display: "flex", alignItems: "center", justifyContent: "center", 

@@ -3,19 +3,26 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
+import usePricing from "@/hooks/usePricing";
 
+// Base prices are in Kenyan Shillings (KES). The usePricing hook detects the
+// visitor's country and converts/renders prices in their local currency.
 const plans = [
   {
     name: "Free",
-    description: "Perfect for getting started with static QR codes.",
+    description: "Everything you need to create & share QR codes — yours today.",
     monthlyPrice: 0,
     yearlyPrice: 0,
     highlight: false,
+    comingSoon: false,
+    current: true,
     features: [
-      "5 static QR codes",
-      "Basic patterns & colors",
-      "PNG download",
-      "Standard support",
+      "5 QR codes per day",
+      "15+ QR types — URL, vCard, Wi-Fi & more",
+      "Dynamic QR with trackable links",
+      "Design studio — colors, frames & logo",
+      "Export in PNG, SVG, JPG & WebP",
+      "Analytics dashboard",
     ],
     cta: "Get Started Free",
     ctaVariant: "secondary",
@@ -23,10 +30,10 @@ const plans = [
   {
     name: "Pro",
     description: "For creators & small businesses who need dynamic QR.",
-    monthlyPrice: 12,
-    yearlyPrice: 9,
+    monthlyPrice: 1000,
+    yearlyPrice: 750,
     highlight: true,
-    badge: "Most Popular",
+    comingSoon: true,
     features: [
       "Unlimited QR codes",
       "Dynamic QR with redirects",
@@ -37,15 +44,16 @@ const plans = [
       "5 folders",
       "Priority support",
     ],
-    cta: "Start Pro Trial",
+    cta: "Coming Soon",
     ctaVariant: "primary",
   },
   {
     name: "Business",
     description: "For teams that need campaigns, routing & full analytics.",
-    monthlyPrice: 39,
-    yearlyPrice: 29,
+    monthlyPrice: 3000,
+    yearlyPrice: 2250,
     highlight: false,
+    comingSoon: true,
     features: [
       "Everything in Pro",
       "Unlimited folders & campaigns",
@@ -57,13 +65,14 @@ const plans = [
       "API access",
       "Dedicated support",
     ],
-    cta: "Start Business Trial",
+    cta: "Coming Soon",
     ctaVariant: "primary",
   },
 ];
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(true);
+  const { formatPrice, currency } = usePricing();
 
   return (
     <section
@@ -147,11 +156,22 @@ export default function Pricing() {
               fontSize: "1.125rem",
               color: "var(--color-text-secondary)",
               maxWidth: "520px",
-              margin: "0 auto 2rem",
+              margin: "0 auto 1rem",
               lineHeight: 1.6,
             }}
           >
-            Start free, upgrade when you need dynamic codes, analytics, and team features.
+            Right now, Qraft is completely free — every user gets 5 QR codes a
+            day at no cost. Paid plans are coming soon.
+          </p>
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-text-muted)",
+              margin: "0 auto 2rem",
+            }}
+          >
+            Prices shown in {currency} — updated automatically based on your
+            location.
           </p>
 
           {/* Billing toggle */}
@@ -252,7 +272,27 @@ export default function Pricing() {
               }}
               className="card-hover"
             >
-              {plan.badge && (
+              {plan.current && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-12px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    padding: "0.375rem 1.25rem",
+                    borderRadius: "var(--radius-pill)",
+                    background: "linear-gradient(135deg, var(--color-success), #10B981)",
+                    color: "white",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                  }}
+                >
+                  Your current plan
+                </span>
+              )}
+              {!plan.current && plan.comingSoon && (
                 <span
                   style={{
                     position: "absolute",
@@ -269,7 +309,7 @@ export default function Pricing() {
                     boxShadow: "var(--shadow-glow-orange)",
                   }}
                 >
-                  {plan.badge}
+                  Coming Soon
                 </span>
               )}
 
@@ -309,7 +349,7 @@ export default function Pricing() {
                       lineHeight: 1,
                     }}
                   >
-                    ${isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+                    {formatPrice(isYearly ? plan.yearlyPrice : plan.monthlyPrice)}
                   </span>
                   {plan.monthlyPrice > 0 && (
                     <span
@@ -335,7 +375,7 @@ export default function Pricing() {
                       fontWeight: 500,
                     }}
                   >
-                    Billed ${plan.yearlyPrice * 12}/year
+                    Billed {formatPrice(plan.yearlyPrice * 12)}/year
                   </span>
                 )}
                 {plan.monthlyPrice === 0 && (
@@ -348,7 +388,7 @@ export default function Pricing() {
                       fontWeight: 500,
                     }}
                   >
-                    Free forever
+                    Free right now
                   </span>
                 )}
               </div>
@@ -401,6 +441,7 @@ export default function Pricing() {
                 variant={plan.highlight ? "accent" : plan.ctaVariant}
                 size="lg"
                 href="/register"
+                disabled={plan.comingSoon}
                 style={{
                   width: "100%",
                   justifyContent: "center",

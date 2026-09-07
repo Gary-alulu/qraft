@@ -236,9 +236,6 @@ export default function QRCreatorDemo() {
 
             <Button variant="primary" size="md" href="/studio">
               Open Full Studio
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
             </Button>
           </div>
 

@@ -137,17 +137,8 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.3 }}
               style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
             >
-              <Button variant="accent" size="lg" href="/studio" style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Button variant="accent" size="lg" href="/studio" style={{ fontWeight: 600 }}>
                 Create a QR Code
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M3 8H13M13 8L9 4M13 8L9 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
               </Button>
               <Button variant="secondary" size="lg" href="#templates">
                 Explore Templates
