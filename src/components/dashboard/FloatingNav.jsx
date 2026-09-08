@@ -3,14 +3,14 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { LayoutDashboard, QrCode, TrendingUp, Settings, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, QrCode, TrendingUp, Settings, Plus, LogOut, Shield } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useSession } from "@/components/providers/AuthProvider";
 
 export default function FloatingNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useSession();
+  const { signOut, user } = useSession();
 
   const handleSignOut = async () => {
     await signOut();
@@ -23,6 +23,10 @@ export default function FloatingNav() {
     { name: "Analytics", href: "/dashboard/analytics", icon: TrendingUp },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
+
+  if (user?.role === "admin") {
+    navItems.push({ name: "Admin", href: "/admin", icon: Shield });
+  }
 
   return (
     <motion.div 
