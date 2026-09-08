@@ -35,12 +35,17 @@ async function resolveDbUser(supabaseUser) {
   let dbUser = await User.findOne({ email });
   if (!dbUser) {
     const metadata = supabaseUser.user_metadata || {};
+    const firstName = metadata.first_name || "";
+    const lastName = metadata.last_name || "";
+    const fullName =
+      [firstName, lastName].filter(Boolean).join(" ").trim() ||
+      metadata.full_name ||
+      metadata.name ||
+      email.split("@")[0] ||
+      "User";
+
     dbUser = await User.create({
-      name:
-        metadata.full_name ||
-        metadata.name ||
-        email.split("@")[0] ||
-        "User",
+      name: fullName,
       email,
       password: `supabase:${supabaseUser.id}`,
       avatar: metadata.avatar_url || metadata.picture || "",
@@ -58,15 +63,11 @@ async function resolveDbUser(supabaseUser) {
 }
 
 /**
- * Supabase Auth-backed session helper.
- *
- * Returns the same shape the app relied on with NextAuth:
- *   { user: { id, email, name, role } }   (or null when signed out)
- *
- * `id` is the Mongo User _id. All existing `await auth()` callers in server
- * components and API routes keep working without changes.
+ * Returns the raw Supabase auth user from the request cookies, or null when
+ * signed out. Used by auth() and by privileged server actions (e.g. account
+ * deletion via the service-role key).
  */
-export async function auth() {
+export async function getSupabaseUser() {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
   const cookieStore = await cookies();
@@ -93,13 +94,28 @@ export async function auth() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  return user || null;
+}
+
+/**
+ * Supabase Auth-backed session helper.
+ *
+ * Returns the same shape the app relied on with NextAuth:
+ *   { user: { id, email, name, role } }   (or null when signed out)
+ *
+ * `id` is the Mongo User _id. All existing `await auth()` callers in server
+ * components and API routes keep working without changes.
+ */
+export async function auth() {
+  const user = await getSupabaseUser();
   if (!user) return null;
   if (!user.email) {
+    const meta = user.user_metadata || {};
     return {
       user: {
         id: user.id,
         email: "",
-        name: user.user_metadata?.full_name || user.user_metadata?.name || "User",
+        name: [meta.first_name, meta.last_name].filter(Boolean).join(" ") || meta.full_name || meta.name || "User",
         role: "user",
       },
     };
@@ -118,7 +134,12 @@ export async function auth() {
     user: {
       id: user.id,
       email: user.email.toLowerCase(),
-      name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0] || "User",
+      name:
+        [user.user_metadata?.first_name, user.user_metadata?.last_name].filter(Boolean).join(" ").trim() ||
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email.split("@")[0] ||
+        "User",
       role: "user",
     },
   };

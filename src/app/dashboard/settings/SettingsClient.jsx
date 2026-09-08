@@ -4,7 +4,9 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
 import Tabs from "@/components/ui/Tabs";
-import { Check, Loader2, ArrowRight } from "lucide-react";
+import { Check, Loader2, ArrowRight, AlertTriangle } from "lucide-react";
+import { getSupabaseBrowser, isSupabaseAuthConfigured } from "@/lib/supabase-browser";
+import { useSession } from "@/components/providers/AuthProvider";
 
 const inputStyle = {
   width: "100%",
@@ -27,6 +29,7 @@ const labelStyle = {
 };
 
 export default function SettingsClient({ user }) {
+  const { signOut } = useSession();
   const [activeTab, setActiveTab] = useState("profile");
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null); // "success" | "error" | null
@@ -82,6 +85,76 @@ export default function SettingsClient({ user }) {
       showStatus("error");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [pwFields, setPwFields] = useState({ current: "", next: "", confirm: "" });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwStatus, setPwStatus] = useState(null); // { type: "success"|"error", msg }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwStatus(null);
+
+    if (pwFields.next.length < 6) {
+      setPwStatus({ type: "error", msg: "New password must be at least 6 characters." });
+      return;
+    }
+    if (pwFields.next !== pwFields.confirm) {
+      setPwStatus({ type: "error", msg: "New passwords do not match." });
+      return;
+    }
+    if (!user?.email) {
+      setPwStatus({ type: "error", msg: "Unable to verify your current password. Please sign out and sign in again." });
+      return;
+    }
+    if (!isSupabaseAuthConfigured()) {
+      setPwStatus({ type: "error", msg: "Authentication is not configured yet." });
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      const supabase = getSupabaseBrowser();
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: pwFields.current,
+      });
+      if (reauthError) {
+        setPwStatus({ type: "error", msg: "Current password is incorrect." });
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: pwFields.next });
+      if (error) throw error;
+
+      setPwStatus({ type: "success", msg: "Password updated successfully." });
+      setPwFields({ current: "", next: "", confirm: "" });
+    } catch (err) {
+      setPwStatus({ type: "error", msg: err.message || "Failed to update password. Please try again." });
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/user", { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to delete account");
+      }
+      await signOut();
+      window.location.href = "/";
+    } catch (err) {
+      setDeleteError(err.message || "Failed to delete account. Please try again.");
+      setDeleting(false);
     }
   };
 
@@ -240,12 +313,56 @@ export default function SettingsClient({ user }) {
         {/* ── Security ── */}
         {activeTab === "security" && (
           <div style={{ maxWidth: "480px" }}>
-            <div style={{ marginBottom: "2rem" }}>
+            <form onSubmit={handleChangePassword} style={{ marginBottom: "2rem" }}>
               <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>Change Password</h3>
               <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
-                We will email you a secure link to reset your password.
+                Enter your current password, then choose a new one.
               </p>
-              <Button variant="secondary">Request Password Reset</Button>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
+                  <label style={labelStyle}>Current Password</label>
+                  <input type="password" value={pwFields.current} onChange={e => setPwFields({ ...pwFields, current: e.target.value })} autoComplete="current-password" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>New Password</label>
+                  <input type="password" value={pwFields.next} onChange={e => setPwFields({ ...pwFields, next: e.target.value })} autoComplete="new-password" placeholder="At least 6 characters" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Confirm New Password</label>
+                  <input type="password" value={pwFields.confirm} onChange={e => setPwFields({ ...pwFields, confirm: e.target.value })} autoComplete="new-password" placeholder="Re-enter your new password" style={inputStyle} />
+                </div>
+
+                {pwStatus && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    style={{
+                      padding: "0.75rem 1rem", borderRadius: "var(--radius-md)", fontSize: "0.875rem",
+                      background: pwStatus.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                      color: pwStatus.type === "success" ? "var(--color-success)" : "var(--color-error)",
+                      border: `1px solid ${pwStatus.type === "success" ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.2)"}`,
+                    }}>
+                    {pwStatus.type === "success" && <Check size={14} style={{ verticalAlign: "middle", marginRight: "0.375rem" }} />}
+                    {pwStatus.msg}
+                  </motion.div>
+                )}
+
+                <div>
+                  <Button type="submit" variant="primary" loading={pwSaving} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                    {!pwSaving && <Check size={16} />}
+                    Update Password
+                  </Button>
+                </div>
+              </div>
+            </form>
+
+            <div style={{ paddingTop: "1.75rem", borderTop: "1px solid var(--color-border-light)" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, marginBottom: "0.5rem" }}>Forgot your password?</h3>
+              <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
+                Can&apos;t remember your password? We&apos;ll email you a secure link to reset it.
+              </p>
+              <a href="/forgot-password" style={{ textDecoration: "none" }}>
+                <Button variant="secondary">Request Password Reset</Button>
+              </a>
             </div>
 
             <div style={{ paddingTop: "2rem", borderTop: "1px solid var(--color-border-light)" }}>
@@ -253,9 +370,45 @@ export default function SettingsClient({ user }) {
               <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>
                 Once you delete your account, there is no going back. All your QR codes and data will be permanently removed.
               </p>
-              <button style={{ padding: "0.625rem 1.25rem", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,0.05)", color: "var(--color-error)", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem" }}>
-                Delete Account
-              </button>
+
+              {deleteError && (
+                <div style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)", padding: "0.75rem 1rem", borderRadius: "var(--radius-md)", fontSize: "0.875rem", border: "1px solid rgba(239, 68, 68, 0.2)", marginBottom: "1rem" }}>
+                  {deleteError}
+                </div>
+              )}
+
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  style={{ padding: "0.625rem 1.25rem", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,0.05)", color: "var(--color-error)", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem" }}
+                >
+                  Delete Account
+                </button>
+              ) : (
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--radius-lg)", padding: "1.25rem", background: "rgba(239,68,68,0.04)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                    <AlertTriangle size={18} color="var(--color-error)" />
+                    <strong style={{ fontSize: "0.9375rem", color: "var(--color-error)" }}>Are you absolutely sure?</strong>
+                  </div>
+                  <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1.25rem" }}>
+                    This permanently deletes your account, all QR codes, analytics, and saved data. This action cannot be undone.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.625rem 1.25rem", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,0.12)", color: "var(--color-error)", cursor: deleting ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "0.875rem", opacity: deleting ? 0.6 : 1 }}
+                    >
+                      {deleting ? <Loader2 size={16} className="animate-spin" /> : <AlertTriangle size={16} />}
+                      {deleting ? "Deleting..." : "Delete My Account"}
+                    </button>
+                    <Button variant="secondary" onClick={() => { setShowDeleteConfirm(false); setDeleteError(""); }} disabled={deleting}>
+                      Cancel
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         )}

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { useSession } from "@/components/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import StudioLayout from "@/components/studio/StudioLayout";
@@ -76,7 +77,8 @@ function StudioContent() {
 
   const handleSave = async () => {
     if (!session) {
-      router.push("/login");
+      const studioPath = window.location.pathname + window.location.search;
+      router.push(`/login?next=${encodeURIComponent(studioPath)}`);
       return;
     }
 
@@ -160,12 +162,12 @@ function StudioContent() {
         height: "64px", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)", 
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.5rem" 
       }}>
-        <a href="/" style={{ textDecoration: "none", color: "var(--color-primary)", fontWeight: 700, fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <Link href="/" style={{ textDecoration: "none", color: "var(--color-primary)", fontWeight: 700, fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ color: "white", fontSize: "0.75rem" }}>Q</span>
           </div>
           QRAFT Studio {editId ? "(Editing)" : ""}
-        </a>
+        </Link>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <AnimatePresence>
             {saveStatus === "success" && (
@@ -197,7 +199,10 @@ function StudioContent() {
               </div>
             </a>
           ) : (
-            <a href="/login" style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}>Sign In</a>
+            <a
+              href={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+              style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}
+            >Sign In</a>
           )}
         </div>
       </header>

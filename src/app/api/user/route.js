@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth, getSupabaseUser } from "@/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import QRCode from "@/models/QRCode";
+import Scan from "@/models/Scan";
+import Folder from "@/models/Folder";
+import { createClient } from "@supabase/supabase-js";
 import { isSameOrigin } from "@/lib/security";
 
 export async function GET() {
@@ -64,6 +68,52 @@ export async function PATCH(req) {
     return NextResponse.json({ success: true, data: updatedUser });
   } catch (error) {
     console.error("UPDATE USER ERROR:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const supabaseUser = await getSupabaseUser();
+
+    const mongoUserId = session.user.id;
+
+    // 1) Remove the user's Mongo data (folders, QR codes, their scans, then the user).
+    await dbConnect();
+    const qrIds = await QRCode.find({ userId: mongoUserId }).distinct("_id");
+    await Promise.all([
+      Folder.deleteMany({ userId: mongoUserId }),
+      Scan.deleteMany({ qrCodeId: { $in: qrIds } }),
+      QRCode.deleteMany({ userId: mongoUserId }),
+    ]);
+    await User.deleteOne({ _id: mongoUserId });
+
+    // 2) Delete the Supabase auth account (service role is required).
+    if (supabaseUser?.id) {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && serviceRoleKey) {
+        const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, serviceRoleKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { error } = await admin.auth.admin.deleteUser(supabaseUser.id);
+        if (error) {
+          console.error("SUPABASE DELETE USER ERROR:", error.message);
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE USER ERROR:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

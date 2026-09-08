@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { getSupabaseBrowser, isSupabaseAuthConfigured } from "@/lib/supabase-browser";
+import { getSafeNext } from "@/lib/auth-redirect";
 
-export default function RegisterPage() {
-  const [name, setName] = useState("");
+function RegisterContent() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const searchParams = useSearchParams();
+  const next = getSafeNext(searchParams.get("next"));
+  const nextQuery = next ? `?next=${encodeURIComponent(next)}` : "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,13 +32,15 @@ export default function RegisterPage() {
       return;
     }
 
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
     try {
       const supabase = getSupabaseBrowser();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: name },
+          data: { full_name: fullName, first_name: firstName.trim(), last_name: lastName.trim() },
         },
       });
 
@@ -43,8 +51,8 @@ export default function RegisterPage() {
       }
 
       if (data?.session) {
-        // Session created immediately -> straight to dashboard.
-        window.location.href = "/dashboard";
+        // Session created immediately -> continue where the user left off.
+        window.location.href = next;
         return;
       }
 
@@ -101,13 +109,22 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <Input 
-            label="Name" 
-            placeholder="Gary" 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-            required 
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <Input 
+              label="First name" 
+              placeholder="Gary" 
+              value={firstName} 
+              onChange={(e) => setFirstName(e.target.value)} 
+              required 
+            />
+            <Input 
+              label="Last name" 
+              placeholder="Alulu" 
+              value={lastName} 
+              onChange={(e) => setLastName(e.target.value)} 
+              required 
+            />
+          </div>
           <Input 
             label="Email" 
             type="email" 
@@ -130,9 +147,17 @@ export default function RegisterPage() {
         </form>
 
         <div style={{ marginTop: "1.25rem", textAlign: "center", fontSize: "0.8125rem", color: "var(--color-text-secondary)" }}>
-          Already have an account? <a href="/login" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>Sign in</a>
+          Already have an account? <a href={`/login${nextQuery}`} style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>Sign in</a>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterContent />
+    </Suspense>
   );
 }

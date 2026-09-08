@@ -1,3 +1,4 @@
+import Link from "next/link";
 import SimplePage from "@/components/landing/SimplePage";
 
 export const metadata = { title: "Contact — QRAFT" };
@@ -20,7 +21,7 @@ export default function ContactPage() {
       </p>
       <p>
         Or visit the{" "}
-        <a href="/#faq">FAQ section on our homepage</a> for quick answers to common
+        <Link href="/#faq">FAQ section on our homepage</Link> for quick answers to common
         questions.
       </p>
     </SimplePage>
