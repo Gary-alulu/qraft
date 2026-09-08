@@ -4,65 +4,74 @@ import { useState, useRef, useEffect } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Toggle from "@/components/ui/Toggle";
-import { Check, Loader2, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Check, Loader2, X, ChevronDown,
+  Globe, Link2, LayoutTemplate, Share2, Smartphone,
+  Contact, Phone, Mail, MessageSquare, MessageCircle,
+  Briefcase, Star, Utensils, Package, ListChecks,
+  CalendarDays, Calendar, CalendarCheck, Ticket,
+  CreditCard, Wallet,
+  Wifi, MapPin, Type, FileText,
+} from "lucide-react";
 import { DATA_BUILDERS } from "@/lib/qr-data-builders";
 import { supabase, isSupabaseConfigured, DOCUMENTS_BUCKET } from "@/lib/supabase";
 
 const categories = [
   {
+    name: "Utilities",
+    items: [
+      { id: "wifi", label: "Wi-Fi", icon: Wifi },
+      { id: "location", label: "Location", icon: MapPin },
+      { id: "text", label: "Text", icon: Type },
+      { id: "document", label: "PDF / File", icon: FileText },
+    ],
+  },
+  {
     name: "Links",
     items: [
-      { id: "website", label: "Website" },
-      { id: "dynamic", label: "Dynamic URL" },
-      { id: "landing_page", label: "Landing Page" },
-      { id: "social", label: "Social Profile" },
-      { id: "app_link", label: "App Link" },
+      { id: "website", label: "Website", icon: Globe },
+      { id: "dynamic", label: "Dynamic URL", icon: Link2 },
+      { id: "landing_page", label: "Landing Page", icon: LayoutTemplate },
+      { id: "social", label: "Social Profile", icon: Share2 },
+      { id: "app_link", label: "App Link", icon: Smartphone },
     ],
   },
   {
     name: "Contact",
     items: [
-      { id: "vcard", label: "vCard" },
-      { id: "phone", label: "Phone" },
-      { id: "email", label: "Email" },
-      { id: "sms", label: "SMS" },
-      { id: "whatsapp", label: "WhatsApp" },
+      { id: "vcard", label: "vCard", icon: Contact },
+      { id: "phone", label: "Phone", icon: Phone },
+      { id: "email", label: "Email", icon: Mail },
+      { id: "sms", label: "SMS", icon: MessageSquare },
+      { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
     ],
   },
   {
     name: "Business",
     items: [
-      { id: "business", label: "Business Profile" },
-      { id: "review", label: "Reviews" },
-      { id: "menu", label: "Menu" },
-      { id: "product", label: "Product" },
-      { id: "feedback", label: "Feedback" },
+      { id: "business", label: "Business Profile", icon: Briefcase },
+      { id: "review", label: "Reviews", icon: Star },
+      { id: "menu", label: "Menu", icon: Utensils },
+      { id: "product", label: "Product", icon: Package },
+      { id: "feedback", label: "Feedback", icon: ListChecks },
     ],
   },
   {
     name: "Events",
     items: [
-      { id: "event", label: "Event" },
-      { id: "calendar", label: "Calendar" },
-      { id: "rsvp", label: "RSVP" },
-      { id: "ticket", label: "Ticket" },
+      { id: "event", label: "Event", icon: CalendarDays },
+      { id: "calendar", label: "Calendar", icon: Calendar },
+      { id: "rsvp", label: "RSVP", icon: CalendarCheck },
+      { id: "ticket", label: "Ticket", icon: Ticket },
     ],
   },
   {
     name: "Payments",
     items: [
-      { id: "payment_link", label: "Payment Link" },
-      { id: "mpesa", label: "M-Pesa" },
-      { id: "paypal", label: "PayPal" },
-    ],
-  },
-  {
-    name: "Utilities",
-    items: [
-      { id: "wifi", label: "Wi-Fi" },
-      { id: "location", label: "Location" },
-      { id: "text", label: "Text" },
-      { id: "document", label: "PDF / File" },
+      { id: "payment_link", label: "Payment Link", icon: CreditCard },
+      { id: "mpesa", label: "M-Pesa", icon: Smartphone },
+      { id: "paypal", label: "PayPal", icon: Wallet },
     ],
   },
 ];
@@ -71,10 +80,35 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenerateDone, setRegenerateDone] = useState(false);
   const fileInputRef = useRef(null);
+  const typeMenuRef = useRef(null);
+
+  const allTypes = categories.flatMap(cat => cat.items);
+  const activeItem = allTypes.find(item => item.id === activeType) || allTypes[0];
+  const ActiveIcon = activeItem?.icon || Link2;
 
   useEffect(() => {
     setSupabaseReady(isSupabaseConfigured());
+  }, []);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (typeMenuRef.current && !typeMenuRef.current.contains(e.target)) {
+        setTypeMenuOpen(false);
+      }
+    }
+    function onKey(e) {
+      if (e.key === "Escape") setTypeMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   // Force dynamic for hosted types
@@ -167,7 +201,14 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
   const handleGenerateClick = () => {
     const builder = DATA_BUILDERS[activeType];
     const dataString = builder ? builder(formData[activeType] || {}) : "";
-    onGenerate(dataString || "https://qraft.app");
+    setRegenerating(true);
+    setRegenerateDone(false);
+    setTimeout(() => {
+      onGenerate(dataString || "https://qraft.app");
+      setRegenerating(false);
+      setRegenerateDone(true);
+      setTimeout(() => setRegenerateDone(false), 1600);
+    }, 350);
   };
 
   const renderForm = () => {
@@ -475,24 +516,115 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <h2 style={{ fontSize: "1.125rem", fontWeight: 700, fontFamily: "var(--font-display)", marginBottom: "1.5rem" }}>Content</h2>
 
-      <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ marginBottom: "1.5rem", position: "relative" }} ref={typeMenuRef}>
         <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "0.5rem" }}>QR Type</label>
-        <select 
-          value={activeType} 
-          onChange={e => setActiveType(e.target.value)} 
-          style={{ 
-            width: "100%", padding: "0.75rem", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", 
-            background: "var(--color-surface)", color: "var(--color-text)", fontSize: "0.9375rem", outline: "none", cursor: "pointer" 
+        <button
+          type="button"
+          onClick={() => setTypeMenuOpen(o => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={typeMenuOpen}
+          style={{
+            width: "100%",
+            padding: "0.75rem 0.875rem",
+            borderRadius: "var(--radius-md)",
+            border: `1px solid ${typeMenuOpen ? "var(--color-primary)" : "var(--color-border)"}`,
+            background: "var(--color-surface)",
+            color: "var(--color-text)",
+            fontSize: "0.9375rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.5rem",
+            cursor: "pointer",
+            outline: "none",
+            transition: "border-color 0.2s ease",
           }}
         >
-          {categories.map(cat => (
-            <optgroup key={cat.name} label={cat.name}>
-              {cat.items.map(item => (
-                <option key={item.id} value={item.id}>{item.label}</option>
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+            <ActiveIcon size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeItem.label}</span>
+          </span>
+          <ChevronDown
+            size={16}
+            style={{
+              transform: typeMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+              color: "var(--color-text-muted)",
+              flexShrink: 0,
+            }}
+          />
+        </button>
+
+        <AnimatePresence>
+          {typeMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              role="listbox"
+              style={{
+                position: "absolute",
+                top: "calc(100% + 0.5rem)",
+                left: 0,
+                right: 0,
+                zIndex: 40,
+                background: "var(--color-surface)",
+                borderRadius: "var(--radius-lg)",
+                border: "1px solid var(--color-border-light)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.14)",
+                maxHeight: "340px",
+                overflowY: "auto",
+                padding: "0.5rem",
+              }}
+            >
+              {categories.map(cat => (
+                <div key={cat.name} style={{ marginBottom: "0.25rem" }}>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--color-text-muted)", padding: "0.45rem 0.6rem 0.3rem" }}>
+                    {cat.name}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem" }}>
+                    {cat.items.map(item => {
+                      const ItemIcon = item.icon;
+                      const isActive = item.id === activeType;
+                      return (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={isActive}
+                          key={item.id}
+                          onClick={() => {
+                            setActiveType(item.id);
+                            setTypeMenuOpen(false);
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            padding: "0.55rem 0.6rem",
+                            borderRadius: "var(--radius-md)",
+                            border: isActive ? "1px solid var(--color-primary)" : "1px solid transparent",
+                            background: isActive ? "var(--color-primary)" : "transparent",
+                            color: isActive ? "#ffffff" : "var(--color-text)",
+                            fontSize: "0.8125rem",
+                            fontWeight: isActive ? 600 : 500,
+                            cursor: "pointer",
+                            textAlign: "left",
+                            width: "100%",
+                            transition: "background 0.15s ease",
+                          }}
+                        >
+                          <ItemIcon size={14} style={{ flexShrink: 0 }} />
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
-            </optgroup>
-          ))}
-        </select>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div style={{
@@ -554,7 +686,15 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       </div>
 
       <div style={{ paddingTop: "1.5rem", marginTop: "auto", borderTop: "1px solid var(--color-border-light)" }}>
-         <Button variant="primary" style={{ width: "100%" }} onClick={handleGenerateClick}>Generate QR Code</Button>
+         <Button variant="primary" style={{ width: "100%" }} onClick={handleGenerateClick} loading={regenerating}>
+          {regenerateDone ? (
+            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+              <Check size={16} /> QR Code Refreshed
+            </span>
+          ) : (
+            "Regenerate QR Code"
+          )}
+        </Button>
       </div>
     </div>
   );

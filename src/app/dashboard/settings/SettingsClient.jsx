@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
+import UserAvatar from "@/components/ui/UserAvatar";
 import Tabs from "@/components/ui/Tabs";
-import { Check, Loader2, ArrowRight, AlertTriangle } from "lucide-react";
+import { Check, Loader2, ArrowRight, AlertTriangle, ExternalLink } from "lucide-react";
 import { getSupabaseBrowser, isSupabaseAuthConfigured } from "@/lib/supabase-browser";
 import { useSession } from "@/components/providers/AuthProvider";
 
@@ -28,7 +29,7 @@ const labelStyle = {
   color: "var(--color-text)",
 };
 
-export default function SettingsClient({ user }) {
+export default function SettingsClient({ user, gravatarSrc = "" }) {
   const { signOut } = useSession();
   const [activeTab, setActiveTab] = useState("profile");
   const [saving, setSaving] = useState(false);
@@ -218,29 +219,59 @@ export default function SettingsClient({ user }) {
         {/* ── Profile ── */}
         {activeTab === "profile" && (
           <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "480px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+
+            {/* Avatar preview */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: "1.25rem",
+              padding: "1.25rem", borderRadius: "var(--radius-lg)",
+              background: "linear-gradient(135deg, rgba(30,58,95,0.04) 0%, rgba(0,212,255,0.04) 100%)",
+              border: "1px solid var(--color-border-light)",
+              marginBottom: "0.25rem",
+            }}>
+              <UserAvatar name={user?.name || ""} gravatarSrc={gravatarSrc} size={64} style={{ border: "2.5px solid var(--color-border-light)", boxShadow: "0 4px 12px rgba(30,58,95,0.12)" }} />
               <div>
-                <label style={labelStyle}>Full Name</label>
-                <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} style={inputStyle} />
-              </div>
-              <div>
-                <label style={labelStyle}>Email Address</label>
-                <input type="email" value={user?.email || ""} disabled style={{ ...inputStyle, background: "rgba(0,0,0,0.02)", color: "var(--color-text-muted)", cursor: "not-allowed" }} />
+                <p style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--color-text)", marginBottom: "0.25rem" }}>
+                  {gravatarSrc ? "Profile photo from Gravatar" : "No profile photo found"}
+                </p>
+                <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+                  {gravatarSrc
+                    ? "Your photo is pulled automatically from your Gravatar account."
+                    : "Add a photo by creating a free Gravatar linked to your email address."}
+                </p>
+                <a
+                  href={`https://gravatar.com/emails/?email=${encodeURIComponent(user?.email || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8125rem", color: "var(--color-primary)", fontWeight: 500, marginTop: "0.5rem", textDecoration: "none" }}
+                >
+                  {gravatarSrc ? "Change on Gravatar" : "Set up Gravatar"} <ExternalLink size={12} />
+                </a>
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <div>
-                <label style={labelStyle}>Company</label>
-                <input type="text" value={profile.company} onChange={e => setProfile({ ...profile, company: e.target.value })} placeholder="Acme Inc." style={inputStyle} />
+            <div className="q-pair" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={labelStyle}>Full Name</label>
+                  <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Email Address</label>
+                  <input type="email" value={user?.email || ""} disabled style={{ ...inputStyle, background: "rgba(0,0,0,0.02)", color: "var(--color-text-muted)", cursor: "not-allowed" }} />
+                </div>
               </div>
-              <div>
-                <label style={labelStyle}>Job Title</label>
-                <input type="text" value={profile.jobTitle} onChange={e => setProfile({ ...profile, jobTitle: e.target.value })} placeholder="Head of Marketing" style={inputStyle} />
-              </div>
-            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="q-pair" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={labelStyle}>Company</label>
+                  <input type="text" value={profile.company} onChange={e => setProfile({ ...profile, company: e.target.value })} placeholder="Acme Inc." style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Job Title</label>
+                  <input type="text" value={profile.jobTitle} onChange={e => setProfile({ ...profile, jobTitle: e.target.value })} placeholder="Head of Marketing" style={inputStyle} />
+                </div>
+              </div>
+
+              <div className="q-pair" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
                 <label style={labelStyle}>Timezone</label>
                 <select value={profile.timezone} onChange={e => setProfile({ ...profile, timezone: e.target.value })} style={{ ...inputStyle, cursor: "pointer" }}>

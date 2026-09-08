@@ -118,7 +118,7 @@ export default function Analytics() {
             }}
           >
             {/* Metrics Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
+            <div className="analytics-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
               {metrics.map((m, i) => (
                 <motion.div
                   key={i}
@@ -138,7 +138,7 @@ export default function Analytics() {
               ))}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+            <div className="analytics-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
               {/* Location */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -212,6 +212,14 @@ export default function Analytics() {
           .analytics-grid {
             grid-template-columns: 1fr !important;
             gap: 3rem !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .analytics-metrics {
+            grid-template-columns: 1fr !important;
+          }
+          .analytics-split {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>

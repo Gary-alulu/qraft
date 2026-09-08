@@ -27,8 +27,16 @@ export default function Tabs({ tabs = [], activeTab, onChange, className = "" })
         gap: "0.25rem",
         borderBottom: "1px solid var(--color-border-light)",
         paddingBottom: "0",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
       }}
     >
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       {tabs.map((tab, i) => (
         <button
           key={tab.id}

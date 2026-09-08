@@ -83,7 +83,15 @@ const body = await req.json();
       await newQr.save();
     }
 
-    return NextResponse.json({ success: true, data: newQr }, { status: 201 });
+    // Determine if this is the user's first QR of the calendar day (server-side
+    // source of truth so it stays consistent across devices/browsers).
+    const todayCount = await QRCode.countDocuments({
+      userId: session.user.id,
+      createdAt: { $gte: startOfDay },
+    });
+    const isFirstQRToday = todayCount === 1;
+
+    return NextResponse.json({ success: true, data: newQr, isFirstQRToday }, { status: 201 });
   } catch (error) {
     console.error("CREATE QR ERROR:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

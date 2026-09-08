@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 const footerLinks = {
   Product: [
@@ -123,38 +124,13 @@ export default function Footer() {
                 marginBottom: "1.25rem",
               }}
             >
-              <div
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, var(--color-secondary), var(--color-accent))",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span
-                  style={{
-                    color: "white",
-                    fontSize: "1rem",
-                    fontWeight: 800,
-                    fontFamily: "var(--font-display)",
-                  }}
-                >
-                  Q
-                </span>
-              </div>
-              <span
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "1.5rem",
-                  fontWeight: 800,
-                  color: "white",
-                }}
-              >
-                QRAFT
-              </span>
+              <Image
+                src="/images/footer-logo.png"
+                alt="QRAFT"
+                width={3652}
+                height={1418}
+                style={{ height: "34px", width: "auto", display: "block" }}
+              />
             </div>
             <p
               style={{

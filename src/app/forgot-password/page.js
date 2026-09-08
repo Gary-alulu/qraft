@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -54,9 +55,7 @@ function ForgotPasswordContent() {
         style={{ width: "100%", maxWidth: "400px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "1.75rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)", margin: "auto" }}
       >
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", marginBottom: "1rem" }}>
-            <span style={{ color: "white", fontWeight: 700, fontSize: "1.125rem" }}>Q</span>
-          </div>
+          <Image src="/images/favicon.png" alt="QRAFT" width={4725} height={4726} style={{ width: "40px", height: "40px", borderRadius: "10px", objectFit: "cover", marginBottom: "1rem", display: "inline-block" }} />
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--color-text)" }}>Reset your password</h1>
           <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>Enter your email and we&apos;ll send you a secure reset link</p>
         </div>

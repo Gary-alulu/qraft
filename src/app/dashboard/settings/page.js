@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import SettingsClient from "./SettingsClient";
+import { gravatarUrlFromEmail } from "@/lib/gravatar";
 
 export const metadata = {
   title: "Settings | Qraft",
@@ -32,6 +33,8 @@ export default async function SettingsPage() {
     notifications: userRaw.notifications || {},
   };
 
+  const gravatarSrc = userRaw.email ? gravatarUrlFromEmail(userRaw.email, 160) : "";
+
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "100px" }}>
       <div style={{ marginBottom: "2.5rem" }}>
@@ -43,7 +46,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsClient user={user} />
+      <SettingsClient user={user} gravatarSrc={gravatarSrc} />
     </div>
   );
 }

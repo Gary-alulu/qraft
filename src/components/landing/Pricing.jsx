@@ -343,7 +343,7 @@ export default function Pricing() {
                   <span
                     style={{
                       fontFamily: "var(--font-display)",
-                      fontSize: "3rem",
+                      fontSize: "clamp(2rem, 9vw, 3rem)",
                       fontWeight: 800,
                       color: plan.highlight ? "white" : "var(--color-text)",
                       lineHeight: 1,

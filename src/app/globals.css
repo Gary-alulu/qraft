@@ -180,6 +180,26 @@ body {
   padding-bottom: var(--spacing-section);
 }
 
+/* ── Responsive app grid helpers (dashboard / admin) ── */
+.app-main {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+  .app-main {
+    padding: 1rem;
+  }
+  .q-split,
+  .q-split-3,
+  .q-pair {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ── Card Hover Lift ── */
 .card-hover {
   transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth);

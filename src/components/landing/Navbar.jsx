@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 
 const navLinks = [
@@ -25,16 +26,24 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav
+      <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
         style={{
           position: "fixed",
           top: "1rem",
-          left: "50%",
-          transform: "translateX(-50%)",
+          left: 0,
+          right: 0,
           zIndex: "var(--z-nav)",
+          display: "flex",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+      <nav
+        style={{
+          pointerEvents: "auto",
           width: "min(92%, 900px)",
           padding: "0.625rem 1.25rem",
           borderRadius: "var(--radius-pill)",
@@ -51,6 +60,7 @@ export default function Navbar() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          position: "relative",
         }}
       >
         {/* Logo */}
@@ -63,45 +73,25 @@ export default function Navbar() {
             textDecoration: "none",
           }}
         >
-          <div
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "var(--radius-md)",
-              background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="7" height="7" rx="1.5" fill="white" />
-              <rect x="14" y="3" width="7" height="7" rx="1.5" fill="white" />
-              <rect x="3" y="14" width="7" height="7" rx="1.5" fill="white" />
-              <rect x="14" y="14" width="4" height="4" rx="1" fill="white" />
-              <rect x="19" y="17" width="2" height="4" rx="0.5" fill="white" opacity="0.7" />
-              <rect x="14" y="19" width="4" height="2" rx="0.5" fill="white" opacity="0.7" />
-            </svg>
-          </div>
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: "1.25rem",
-              color: "var(--color-primary)",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            QRAFT
-          </span>
+          <Image
+            src="/images/nav-logo.png"
+            alt="QRAFT"
+            width={3652}
+            height={1418}
+            priority
+            style={{ height: "22px", width: "auto", display: "block" }}
+          />
         </a>
 
-        {/* Desktop Links */}
+        {/* Desktop Links (pinned to true center of the frame) */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: "0.25rem",
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
           }}
           className="nav-links-desktop"
         >
@@ -179,7 +169,8 @@ export default function Navbar() {
             )}
           </svg>
         </button>
-      </motion.nav>
+      </nav>
+      </motion.div>
 
       {/* Mobile Menu */}
       <AnimatePresence>

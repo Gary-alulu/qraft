@@ -27,7 +27,13 @@ async function resolveDbUser(supabaseUser) {
 
   const cache = getUserCache();
   if (cache.has(email)) {
-    return { id: cache.get(email) };
+    const cached = cache.get(email);
+    return {
+      id: cached.id,
+      email: cached.email,
+      name: cached.name,
+      role: cached.role,
+    };
   }
 
   await dbConnect();
@@ -52,14 +58,16 @@ async function resolveDbUser(supabaseUser) {
     });
   }
 
-  cache.set(email, dbUser._id.toString());
-
-  return {
+  const profile = {
     id: dbUser._id.toString(),
     email: dbUser.email,
     name: dbUser.name || dbUser.email?.split("@")[0] || "User",
     role: dbUser.role || "user",
   };
+
+  cache.set(email, profile);
+
+  return profile;
 }
 
 /**

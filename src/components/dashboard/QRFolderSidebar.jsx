@@ -25,7 +25,7 @@ export default function QRFolderSidebar({ folders, activeFolder, setActiveFolder
   };
 
   return (
-    <div style={{ width: "240px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+    <div style={{ width: "100%", minWidth: "190px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
       <div style={{ padding: "0 0.5rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h3 style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Library</h3>
         <button onClick={() => setIsCreating(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)" }}>

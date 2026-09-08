@@ -157,6 +157,7 @@ export default function Hero() {
                 marginTop: "3rem",
                 paddingTop: "2rem",
                 borderTop: "1px solid var(--color-border-light)",
+                flexWrap: "wrap",
               }}
             >
               <div style={{ display: "flex" }}>

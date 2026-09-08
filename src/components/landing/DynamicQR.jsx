@@ -85,6 +85,7 @@ export default function DynamicQR() {
                 gridTemplateColumns: "1fr 1fr",
                 gap: "0.625rem",
               }}
+              className="dynamic-features"
             >
               {features.map((f, i) => (
                 <motion.div
@@ -129,7 +130,7 @@ export default function DynamicQR() {
               transition={{ delay: 0.3 }}
               style={{ marginTop: "2rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
             >
-              <Button variant="primary" href="/studio">Create a Dynamic QR</Button>
+              <Button variant="primary" href="/studio?dynamic=1">Create a Dynamic QR</Button>
               <Button variant="ghost" href="/register">Start Free</Button>
             </motion.div>
           </motion.div>
@@ -260,6 +261,11 @@ export default function DynamicQR() {
           .dynamic-grid {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .dynamic-features {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>

@@ -29,14 +29,23 @@ export default function FloatingNav() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       style={{
         position: "fixed",
         bottom: "2rem",
-        left: "50%",
-        transform: "translateX(-50%)",
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        display: "flex",
+        justifyContent: "center",
+        pointerEvents: "none",
+      }}
+    >
+    <div
+      style={{
+        pointerEvents: "auto",
         background: "rgba(255, 255, 255, 0.85)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
@@ -47,7 +56,6 @@ export default function FloatingNav() {
         alignItems: "center",
         gap: "0.5rem",
         boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
-        zIndex: 50,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
@@ -79,8 +87,8 @@ export default function FloatingNav() {
 
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
 
-      <Button href="/studio" variant="primary" style={{ borderRadius: "100px", padding: "0.75rem 1.5rem" }}>
-        <Plus size={18} style={{ marginRight: "0.5rem" }} />
+      <Button href="/studio" variant="primary" style={{ borderRadius: "100px", padding: "0.75rem 1.25rem" }}>
+        <Plus size={18} className="nav-create-icon" />
         <span className="nav-label" style={{ display: "none" }}>Create</span>
       </Button>
 
@@ -107,8 +115,12 @@ export default function FloatingNav() {
           .nav-label {
             display: inline-block !important;
           }
+          .nav-create-icon {
+            display: none !important;
+          }
         }
       `}</style>
+    </div>
     </motion.div>
   );
 }

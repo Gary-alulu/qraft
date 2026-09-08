@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
 import { useSession } from "@/components/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import StudioLayout from "@/components/studio/StudioLayout";
@@ -11,7 +12,22 @@ import QRTypeSelector from "@/components/studio/QRTypeSelector";
 import QRPreview from "@/components/studio/QRPreview";
 import DesignPanel from "@/components/studio/DesignPanel";
 import Button from "@/components/ui/Button";
+import UserAvatar from "@/components/ui/UserAvatar";
+import FirstQRCelebration from "@/components/studio/FirstQRCelebration";
 import useQRGenerator from "@/hooks/useQRGenerator";
+
+/** Build a Gravatar URL client-side using Web Crypto (no Node.js needed) */
+async function buildGravatarUrl(email, size = 64) {
+  if (!email || typeof crypto === "undefined" || !crypto.subtle) return "";
+  const normalized = email.trim().toLowerCase();
+  const encoded = new TextEncoder().encode(normalized);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+  // Gravatar actually uses MD5, but SHA-256 is not supported by Gravatar.
+  // Instead we use the ?d=mp fallback and still show initials from UserAvatar
+  // when no Gravatar is found. For real MD5 we rely on the server-side path.
+  // On the client, pass an empty string to gracefully fall back to initials.
+  return "";
+}
 
 function StudioContent() {
   const { data: session } = useSession();
@@ -19,14 +35,16 @@ function StudioContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const typeParam = searchParams.get("type");
+  const dynamicParam = searchParams.get("dynamic") === "1";
 
   const [activeType, setActiveType] = useState(typeParam || "website");
   const [formData, setFormData] = useState({});
-  const [isDynamic, setIsDynamic] = useState(false);
+  const [isDynamic, setIsDynamic] = useState(dynamicParam);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const scanabilityContext = useMemo(() => ({
     type: activeType,
@@ -137,6 +155,22 @@ function StudioContent() {
         router.replace(`/studio?edit=${result.data._id}`);
       }
 
+      // Trigger first-QR-of-the-day celebration if the backend says so.
+      // localStorage acts as a same-session guard so we never re-show within
+      // the same browser tab after dismissal, even on repeated saves.
+      if (!editId && result.isFirstQRToday) {
+        const today = new Date().toISOString().slice(0, 10);
+        const lastCelebration = typeof window !== "undefined"
+          ? localStorage.getItem("qraft_last_celebration")
+          : null;
+        if (lastCelebration !== today) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("qraft_last_celebration", today);
+          }
+          setShowCelebration(true);
+        }
+      }
+
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
       console.error("Save error:", err);
@@ -163,10 +197,10 @@ function StudioContent() {
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.5rem" 
       }}>
         <Link href="/" style={{ textDecoration: "none", color: "var(--color-primary)", fontWeight: 700, fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "white", fontSize: "0.75rem" }}>Q</span>
-          </div>
-          QRAFT Studio {editId ? "(Editing)" : ""}
+          <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: "22px", width: "auto", display: "block" }} />
+          {editId && (
+            <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-text-secondary)" }}>(Editing)</span>
+          )}
         </Link>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <AnimatePresence>
@@ -194,9 +228,12 @@ function StudioContent() {
               title="Go to dashboard"
               style={{ textDecoration: "none" }}
             >
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-primary-light)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", transition: "opacity 0.2s ease" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.8"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>
-                {session.user?.name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
+              <UserAvatar
+                name={session.user?.name || ""}
+                gravatarSrc=""
+                size={32}
+                style={{ cursor: "pointer", border: "1.5px solid var(--color-border-light)" }}
+              />
             </a>
           ) : (
             <a
@@ -211,6 +248,18 @@ function StudioContent() {
         leftPanel={<QRTypeSelector activeType={activeType} setActiveType={setActiveType} formData={formData} setFormData={setFormData} onGenerate={handleGenerate} isDynamic={isDynamic} setIsDynamic={setIsDynamic} />}
         centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={download} />}
         rightPanel={<DesignPanel options={options} updateOptions={updateOptions} />}
+      />
+
+      {/* First QR of the Day celebration */}
+      <FirstQRCelebration
+        visible={showCelebration}
+        onDismiss={() => setShowCelebration(false)}
+        onCreateAnother={() => {
+          // Reset studio form state for a fresh QR
+          setFormData({});
+          setActiveType("website");
+          router.replace("/studio");
+        }}
       />
     </div>
   );

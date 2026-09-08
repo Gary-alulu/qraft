@@ -96,7 +96,7 @@ export default async function AnalyticsPage() {
         </p>
       </div>
 
-      <div style={{ 
+      <div className="q-split-3" style={{ 
         display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", marginBottom: "2rem" 
       }}>
         <div style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)" }}>
@@ -115,7 +115,7 @@ export default async function AnalyticsPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
+      <div className="q-split" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
         <div style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", minHeight: "350px" }}>
            <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1.5rem" }}>Scans Over Time (30 Days)</h3>
            <TimeSeriesChart data={timeSeries} />

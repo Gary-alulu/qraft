@@ -84,7 +84,7 @@ export default function AdminOverviewPage() {
         <MetricCard icon={TrendingUp} label="Scans (last 7 days)" value={scans.last7} sub={`${scans.today.toLocaleString()} today`} delay={0.15} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
+      <div className="q-split" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
           style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", boxShadow: "var(--shadow-sm)", height: "360px" }}>
           <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)" }}>Scans Over Time</h3>
@@ -140,7 +140,7 @@ export default function AdminOverviewPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+      <div className="q-pair" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
           style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)" }}>
           <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1rem" }}>
@@ -182,7 +182,8 @@ export default function AdminOverviewPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
         style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", marginTop: "1.5rem" }}>
         <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1rem" }}>Top QR Codes</h3>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "560px" }}>
           <thead>
             <tr style={{ textAlign: "left", color: "var(--color-text-secondary)", borderBottom: "1px solid var(--color-border-light)" }}>
               <th style={{ padding: "0.5rem" }}>Code</th>
@@ -205,7 +206,8 @@ export default function AdminOverviewPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </motion.div>
     </div>
   );
