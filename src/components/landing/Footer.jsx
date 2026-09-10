@@ -307,6 +307,12 @@ export default function Footer() {
             text-align: center;
           }
         }
+        @media (max-width: 480px) {
+          .footer-links {
+            grid-template-columns: 1fr !important;
+            gap: 1rem !important;
+          }
+        }
       `}</style>
     </footer>
   );

@@ -15,6 +15,7 @@ import Button from "@/components/ui/Button";
 import UserAvatar from "@/components/ui/UserAvatar";
 import FirstQRCelebration from "@/components/studio/FirstQRCelebration";
 import useQRGenerator from "@/hooks/useQRGenerator";
+import useMediaQuery from "@/hooks/useMediaQuery";
 
 /** Build a Gravatar URL client-side using Web Crypto (no Node.js needed) */
 async function buildGravatarUrl(email, size = 64) {
@@ -33,6 +34,7 @@ function StudioContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMobile = useMediaQuery("(max-width: 640px)");
   const editId = searchParams.get("edit");
   const typeParam = searchParams.get("type");
   const dynamicParam = searchParams.get("dynamic") === "1";
@@ -194,24 +196,24 @@ function StudioContent() {
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <header style={{ 
         height: "64px", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)", 
-        display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.5rem" 
+        display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "0 0.875rem" : "0 1.5rem", gap: "0.5rem"
       }}>
-        <Link href="/" style={{ textDecoration: "none", color: "var(--color-primary)", fontWeight: 700, fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: "22px", width: "auto", display: "block" }} />
-          {editId && (
+        <Link href="/" style={{ textDecoration: "none", color: "var(--color-primary)", fontWeight: 700, fontSize: isMobile ? "1rem" : "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0, flexShrink: 1 }}>
+          <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: isMobile ? "18px" : "22px", width: "auto", display: "block", maxWidth: isMobile ? "120px" : "none" }} />
+          {!isMobile && editId && (
             <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--color-text-secondary)" }}>(Editing)</span>
           )}
         </Link>
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: isMobile ? "0.5rem" : "0.75rem", alignItems: "center", flexShrink: 0 }}>
           <AnimatePresence>
-            {saveStatus === "success" && (
+            {!isMobile && saveStatus === "success" && (
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
                 style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(16, 185, 129, 0.1)", color: "var(--color-success)", padding: "0.5rem 1rem", borderRadius: "var(--radius-pill)", fontSize: "0.875rem", fontWeight: 500 }}
               >
                 <Check size={16} /> {editId ? "Changes Saved" : "Saved to Dashboard"}
               </motion.div>
             )}
-            {saveStatus === "error" && (
+            {!isMobile && saveStatus === "error" && (
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
                 style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)", padding: "0.5rem 1rem", borderRadius: "var(--radius-pill)", fontSize: "0.875rem", fontWeight: 500 }}
               >
@@ -219,27 +221,29 @@ function StudioContent() {
               </motion.div>
             )}
           </AnimatePresence>
-          <Button variant="accent" size="sm" onClick={handleSave} loading={saving} style={{ fontWeight: 600 }}>
-            {session ? (editId ? "Update QR Code" : "Save to Dashboard") : "Sign in to Save"}
+          <Button variant="accent" size="sm" onClick={handleSave} loading={saving} style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+            {session ? (editId ? (isMobile ? "Update" : "Update QR Code") : (isMobile ? "Save" : "Save to Dashboard")) : (isMobile ? "Save" : "Sign in to Save")}
           </Button>
           {session ? (
             <a
               href="/dashboard"
               title="Go to dashboard"
-              style={{ textDecoration: "none" }}
+              style={{ textDecoration: "none", display: "flex" }}
             >
               <UserAvatar
                 name={session.user?.name || ""}
                 gravatarSrc=""
-                size={32}
+                size={isMobile ? 28 : 32}
                 style={{ cursor: "pointer", border: "1.5px solid var(--color-border-light)" }}
               />
             </a>
           ) : (
-            <a
-              href={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
-              style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}
-            >Sign In</a>
+            !isMobile && (
+              <a
+                href={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+                style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}
+              >Sign In</a>
+            )
           )}
         </div>
       </header>

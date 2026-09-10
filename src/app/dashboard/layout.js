@@ -3,6 +3,7 @@ import Image from "next/image";
 import { auth } from "@/auth";
 import UserAvatar from "@/components/ui/UserAvatar";
 import { gravatarUrlFromEmail } from "@/lib/gravatar";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 export default async function DashboardLayout({ children }) {
   const session = await auth();
@@ -13,11 +14,12 @@ export default async function DashboardLayout({ children }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg)", paddingBottom: "100px" }}>
       {/* Top Header */}
-      <header style={{ height: "70px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)" }}>
+      <header style={{ height: "70px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(1rem, 4vw, 2rem)", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: "22px", width: "auto", display: "block" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <NotificationBell />
           <a href="/dashboard/settings" style={{ textDecoration: "none", display: "flex" }} title="Account Settings">
             <UserAvatar
               name={displayName}

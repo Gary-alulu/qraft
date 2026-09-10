@@ -53,9 +53,31 @@ export async function GET(req, { params }) {
     });
 
     // 5. Increment scan count on the QR doc (atomic)
-    await QRCode.findByIdAndUpdate(qr._id, { $inc: { scansCount: 1 } });
+    const updatedQr = await QRCode.findByIdAndUpdate(
+      qr._id,
+      { $inc: { scansCount: 1 } },
+      { new: true }
+    );
 
-    // 6. Redirect the user to the validated destination
+    // 6. Trigger Smart Notifications engine asynchronously (non-blocking)
+    if (updatedQr) {
+      Promise.resolve().then(async () => {
+        try {
+          const { evaluateScanMilestones, evaluateScanTrafficVelocity } = await import(
+            "@/lib/notifications/evaluator"
+          );
+          await evaluateScanMilestones(updatedQr, updatedQr.scansCount);
+          // Evaluate velocity anomalies every 10 scans or on milestone
+          if (updatedQr.scansCount % 10 === 0) {
+            await evaluateScanTrafficVelocity(updatedQr._id);
+          }
+        } catch (notifErr) {
+          console.error("Scan notification evaluation error:", notifErr);
+        }
+      });
+    }
+
+    // 7. Redirect the user to the validated destination
     return NextResponse.redirect(destination, 302);
 
   } catch (error) {

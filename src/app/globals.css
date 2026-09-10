@@ -29,8 +29,8 @@
   --color-error: #EF4444;
 
   /* ── Typography ── */
-  --font-display: "Outfit", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   /* ── Spacing ── */
@@ -68,12 +68,52 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 90px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Keyboard focus (visible only for keyboard nav) ── */
+:focus-visible {
+  outline: 3px solid rgba(0, 212, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Skeleton loading shimmer ── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-border-light);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: translateX(-100%);
+  animation: qraft-shimmer 1.5s infinite;
+}
+@keyframes qraft-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ── Respect users who prefer reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
@@ -151,6 +191,13 @@ body {
   filter: blur(60px);
   opacity: 0.5;
   animation: blob-float 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .shape-blob {
+    filter: blur(40px);
+  }
 }
 
 @keyframes blob-float {
@@ -274,7 +321,7 @@ body {
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   font-family: var(--font-body);
-  font-size: 0.9375rem;
+  font-size: max(0.9375rem, 16px);
   color: var(--color-text);
   background: var(--color-surface);
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -372,7 +419,7 @@ body {
   }
   .library-sidebar {
     width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
   }
 }

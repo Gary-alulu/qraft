@@ -141,7 +141,8 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
           }}
         >
           {/* Tabs */}
-          <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.03)", padding: "0.25rem", borderRadius: "var(--radius-lg)" }}>
+          <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.03)", padding: "0.25rem", borderRadius: "var(--radius-lg)", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", flexShrink: 0, maxWidth: "100%" }}>
+            <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
             {[
               { id: "all", label: "All Codes" },
               { id: "dynamic", label: "Dynamic" },
@@ -169,8 +170,8 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
             ))}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, justifyContent: "flex-end" }}>
-            <div style={{ position: "relative", maxWidth: "240px", width: "100%" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, justifyContent: "flex-end", flexWrap: "wrap", minWidth: 0 }}>
+            <div style={{ position: "relative", maxWidth: "240px", width: "100%", minWidth: 0 }}>
                <Search size={16} style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }} />
                <input 
                  type="text" 
@@ -201,7 +202,7 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
           viewMode === "list" ? (
             <RecentCodesTable codes={filteredCodes} onUpdate={handleCodeUpdate} onDelete={handleCodeDelete} />
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.5rem" }}>
               {filteredCodes.map(code => (
                 <div key={code.id} style={{ background: "var(--color-surface)", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>

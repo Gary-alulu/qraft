@@ -146,7 +146,7 @@ function UpdatePasswordContent() {
               required
             />
             {statusMessage && (
-              <div style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)", padding: "0.75rem 1rem", borderRadius: "var(--radius-md)", fontSize: "0.875rem", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--color-error)", padding: "0.75rem 1rem", borderRadius: "var(--radius-md)", fontSize: "0.875rem", border: "1px solid rgba(239, 68, 68, 0.2)", overflowWrap: "break-word" }}>
                 {statusMessage}
               </div>
             )}

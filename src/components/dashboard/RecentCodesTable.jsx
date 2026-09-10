@@ -113,8 +113,8 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
         <Link href="/dashboard/codes" style={{ color: "var(--color-primary)", fontSize: "0.875rem", fontWeight: 500, textDecoration: "none" }}>View All</Link>
       </div>
       
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+      <div className="rc-table-scroll" style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <table className="rc-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
           <thead>
             <tr style={{ background: "rgba(0,0,0,0.02)" }}>
               <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Name</th>
@@ -218,6 +218,21 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
           </tbody>
         </table>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .rc-table th,
+          .rc-table td {
+            padding: 0.75rem 0.875rem !important;
+          }
+        }
+        @media (max-width: 560px) {
+          .rc-table th:nth-child(2),
+          .rc-table td:nth-child(2) {
+            display: none;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 }

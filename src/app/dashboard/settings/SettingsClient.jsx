@@ -49,6 +49,40 @@ export default function SettingsClient({ user, gravatarSrc = "" }) {
     emailProduct: user?.notifications?.emailProduct ?? false,
   });
 
+  const [smartPrefs, setSmartPrefs] = useState({
+    inApp: true,
+    email: true,
+    push: false,
+    qrMilestones: true,
+    trafficSpikes: true,
+    trafficDrops: true,
+    conversionMilestones: true,
+    expiration7d: true,
+    expiration3d: true,
+    expiration24h: true,
+    expirationWhenExpired: true,
+    suspiciousTraffic: true,
+    destinationIssues: true,
+    securityWarnings: true,
+    campaignMilestones: true,
+    campaignPerformance: true,
+    abTestResults: true,
+    scanabilityAlerts: true,
+    usageAlerts: true,
+  });
+
+  // Load smart preferences on mount
+  useState(() => {
+    fetch("/api/notifications/preferences")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.preferences) {
+          setSmartPrefs((prev) => ({ ...prev, ...data.preferences }));
+        }
+      })
+      .catch(() => {});
+  });
+
   const showStatus = (status) => {
     setSaveStatus(status);
     setTimeout(() => setSaveStatus(null), 3000);
@@ -75,12 +109,19 @@ export default function SettingsClient({ user, gravatarSrc = "" }) {
   const handleSaveNotifications = async () => {
     setSaving(true);
     try {
-      const res = await fetch("/api/user", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notifications }),
-      });
-      if (!res.ok) throw new Error("Failed");
+      const [res1, res2] = await Promise.all([
+        fetch("/api/user", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notifications }),
+        }),
+        fetch("/api/notifications/preferences", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(smartPrefs),
+        }),
+      ]);
+      if (!res1.ok && !res2.ok) throw new Error("Failed");
       showStatus("success");
     } catch {
       showStatus("error");
@@ -194,6 +235,31 @@ export default function SettingsClient({ user, gravatarSrc = "" }) {
           position: "absolute", top: "2px",
           left: notifications[field] ? "22px" : "2px",
           width: "20px", height: "20px", borderRadius: "50%",
+          background: "white", transition: "left 0.2s",
+        }} />
+      </button>
+    </div>
+  );
+
+  const SmartToggleRow = ({ label, description, field }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid var(--color-border-light)" }}>
+      <div style={{ paddingRight: "1rem" }}>
+        <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--color-text)" }}>{label}</p>
+        {description && <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.15rem" }}>{description}</p>}
+      </div>
+      <button
+        type="button"
+        onClick={() => setSmartPrefs(prev => ({ ...prev, [field]: !prev[field] }))}
+        style={{
+          width: "40px", height: "22px", borderRadius: "11px", border: "none", cursor: "pointer",
+          background: smartPrefs[field] ? "var(--color-primary)" : "var(--color-border)",
+          position: "relative", transition: "background 0.2s", flexShrink: 0,
+        }}
+      >
+        <span style={{
+          position: "absolute", top: "2px",
+          left: smartPrefs[field] ? "20px" : "2px",
+          width: "18px", height: "18px", borderRadius: "50%",
           background: "white", transition: "left 0.2s",
         }} />
       </button>
@@ -326,12 +392,69 @@ export default function SettingsClient({ user, gravatarSrc = "" }) {
 
         {/* ── Notifications ── */}
         {activeTab === "notifications" && (
-          <div style={{ maxWidth: "480px" }}>
-            <ToggleRow label="Scan Alerts" description="Get notified when a QR code reaches a scan milestone." field="emailScans" />
-            <ToggleRow label="Weekly Report" description="Receive a weekly summary of your QR code performance." field="emailWeeklyReport" />
-            <ToggleRow label="Product Updates" description="New features, improvements, and Qraft announcements." field="emailProduct" />
+          <div style={{ maxWidth: "560px" }}>
+            {/* General Channels */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                Delivery Channels
+              </h3>
+              <SmartToggleRow label="In-app Notifications" description="Show live alerts in the dashboard bell and notification center." field="inApp" />
+              <SmartToggleRow label="Email Notifications" description="Receive alert digests and urgent notifications at your email address." field="email" />
+              <SmartToggleRow label="Browser Push" description="Receive desktop alerts when critical spikes or broken links are detected." field="push" />
+            </div>
 
-            <div style={{ paddingTop: "1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
+            {/* QR Performance */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                QR Performance & Milestones
+              </h3>
+              <SmartToggleRow label="Scan Milestones" description="Alert when a QR code crosses 100, 500, 1K, 5K, 10K, 25K, 50K, 100K scans." field="qrMilestones" />
+              <SmartToggleRow label="Traffic Spikes" description="Alert when hourly scan velocity surges 3× or more above normal traffic." field="trafficSpikes" />
+              <SmartToggleRow label="Traffic Drops" description="Alert when a QR code experiences a >50% drop compared to expected scans." field="trafficDrops" />
+              <SmartToggleRow label="Conversion Milestones" description="Notify when a campaign conversion rate crosses a new tier." field="conversionMilestones" />
+            </div>
+
+            {/* Expiration */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                Expiration Alerts
+              </h3>
+              <SmartToggleRow label="7 Days Before" description="Early warning when a scheduled QR is expiring next week." field="expiration7d" />
+              <SmartToggleRow label="3 Days Before" description="Upcoming warning 3 days before a QR code ceases redirection." field="expiration3d" />
+              <SmartToggleRow label="24 Hours Before" description="Urgent notice 24 hours prior to expiration." field="expiration24h" />
+              <SmartToggleRow label="When Expired" description="Critical notice when a QR code has stopped redirecting." field="expirationWhenExpired" />
+            </div>
+
+            {/* Security */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                Security & Reliability
+              </h3>
+              <SmartToggleRow label="Suspicious Traffic" description="Alert on anomalous foreign geographic scan bursts or scraping patterns." field="suspiciousTraffic" />
+              <SmartToggleRow label="Broken Destination URLs" description="Proactively notify when a target URL returns a 404 or 500 status code." field="destinationIssues" />
+              <SmartToggleRow label="Security Warnings" description="Alert when rate limiting or destination security rules block traffic." field="securityWarnings" />
+            </div>
+
+            {/* Campaigns */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                Campaigns & Experiments
+              </h3>
+              <SmartToggleRow label="Campaign Milestones" description="Alert when a campaign hits major collective scan targets." field="campaignMilestones" />
+              <SmartToggleRow label="Performance Shifts" description="Notify when weekly campaign engagement shifts by >25%." field="campaignPerformance" />
+              <SmartToggleRow label="A/B Test Results" description="Proactively detect and notify when a variant statistically outperforms another." field="abTestResults" />
+            </div>
+
+            {/* System & Quota */}
+            <div style={{ marginBottom: "1.75rem" }}>
+              <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--color-text)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.5rem" }}>
+                Health & Plan Limits
+              </h3>
+              <SmartToggleRow label="Scanability Score Decreases" description="Alert when design customization lowers scanability score below 80." field="scanabilityAlerts" />
+              <SmartToggleRow label="Usage Quota Warnings" description="Warn when approaching 80%+ of free or tier monthly scan capacity." field="usageAlerts" />
+            </div>
+
+            <div style={{ paddingTop: "1.5rem", borderTop: "1px solid var(--color-border-light)", display: "flex", alignItems: "center", gap: "1rem" }}>
               <Button variant="primary" onClick={handleSaveNotifications} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                 Save Preferences

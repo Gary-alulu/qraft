@@ -68,7 +68,8 @@ function ForgotPasswordContent() {
             borderRadius: "var(--radius-md)",
             fontSize: "0.875rem",
             marginBottom: "1.25rem",
-            border: "1px solid rgba(239, 68, 68, 0.2)"
+            border: "1px solid rgba(239, 68, 68, 0.2)",
+            overflowWrap: "break-word"
           }}>
             {error}
           </div>

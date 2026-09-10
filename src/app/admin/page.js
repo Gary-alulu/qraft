@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Users, QrCode, Activity, Radar, TrendingUp, Loader2 } from "lucide-react";
+import { LazyAdminScansChart } from "@/components/admin/lazy-admin-charts";
 
 const EMPTY_SERIES = Array.from({ length: 7 }, (_, i) => ({ name: `Day ${i + 1}`, scans: 0 }));
 
@@ -89,22 +89,8 @@ export default function AdminOverviewPage() {
           style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", boxShadow: "var(--shadow-sm)", height: "360px" }}>
           <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)" }}>Scans Over Time</h3>
           <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1rem" }}>Platform-wide, last 14 days</p>
-          <div style={{ width: "100%", height: "270px" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="adminScans" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-light)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--color-text-secondary)" }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--color-text-secondary)" }} allowDecimals={false} />
-                <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "var(--shadow-md)" }} itemStyle={{ color: "var(--color-primary)", fontWeight: 600 }} />
-                <Area type="monotone" dataKey="scans" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#adminScans)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div style={{ width: "100%", height: "270px", overflow: "hidden", marginLeft: "4px" }}>
+            <LazyAdminScansChart data={chartData} />
           </div>
         </motion.div>
 
@@ -183,7 +169,7 @@ export default function AdminOverviewPage() {
         style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", marginTop: "1.5rem" }}>
         <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1rem" }}>Top QR Codes</h3>
         <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "560px" }}>
+          <table className="topcodes-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "560px" }}>
           <thead>
             <tr style={{ textAlign: "left", color: "var(--color-text-secondary)", borderBottom: "1px solid var(--color-border-light)" }}>
               <th style={{ padding: "0.5rem" }}>Code</th>
@@ -196,18 +182,60 @@ export default function AdminOverviewPage() {
           <tbody>
             {topCodes.map((c) => (
               <tr key={c.id} style={{ borderBottom: "1px solid var(--color-border-light)" }}>
-                <td style={{ padding: "0.5rem", color: "var(--color-text)", fontWeight: 500 }}>{c.title}</td>
-                <td style={{ padding: "0.5rem", color: "var(--color-text-secondary)" }}>{c.owner}</td>
-                <td style={{ padding: "0.5rem", color: "var(--color-text-secondary)" }}>{c.type}{c.isDynamic ? " · dynamic" : ""}</td>
-                <td style={{ padding: "0.5rem" }}>
+                <td data-label="Code" style={{ padding: "0.5rem", color: "var(--color-text)", fontWeight: 500 }}>{c.title}</td>
+                <td data-label="Owner" style={{ padding: "0.5rem", color: "var(--color-text-secondary)" }}>{c.owner}</td>
+                <td data-label="Type" style={{ padding: "0.5rem", color: "var(--color-text-secondary)" }}>{c.type}{c.isDynamic ? " · dynamic" : ""}</td>
+                <td data-label="Status" style={{ padding: "0.5rem" }}>
                   <span style={{ textTransform: "capitalize", fontSize: "0.8125rem", fontWeight: 600, color: c.status === "active" ? "var(--color-success)" : "var(--color-text-muted)" }}>{c.status}</span>
                 </td>
-                <td style={{ padding: "0.5rem", textAlign: "right", color: "var(--color-text)", fontWeight: 600 }}>{c.scans.toLocaleString()}</td>
+                <td data-label="Scans" style={{ padding: "0.5rem", textAlign: "right", color: "var(--color-text)", fontWeight: 600 }}>{c.scans.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
           </table>
         </div>
+
+        <style jsx>{`
+          @media (max-width: 768px) {
+            .topcodes-table {
+              min-width: 0 !important;
+              display: block;
+            }
+            .topcodes-table thead {
+              display: none;
+            }
+            .topcodes-table tbody {
+              display: block;
+            }
+            .topcodes-table tr {
+              display: block;
+              padding: 0.75rem 0.5rem;
+              border-bottom: 1px solid var(--color-border-light);
+            }
+            .topcodes-table td {
+              display: block;
+              padding: 0.3rem 0.75rem !important;
+              text-align: left !important;
+              border: none;
+            }
+            .topcodes-table td[data-label]::before {
+              content: attr(data-label);
+              display: block;
+              font-size: 0.6875rem;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              color: var(--color-text-muted);
+              font-weight: 600;
+              margin-bottom: 0.25rem;
+            }
+            .topcodes-table td[data-label="Code"]::before {
+              content: none;
+            }
+            .topcodes-table td[data-label="Code"] {
+              padding: 0.3rem 0.75rem !important;
+            }
+          }
+        `}</style>
       </motion.div>
     </div>
   );

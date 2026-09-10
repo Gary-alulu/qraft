@@ -176,14 +176,18 @@ export default function Pricing() {
 
           {/* Billing toggle */}
           <div
+            className="billing-toggle"
             style={{
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: "0.75rem",
               background: "var(--color-surface)",
               padding: "0.375rem",
               borderRadius: "var(--radius-pill)",
               border: "1px solid var(--color-border-light)",
+              flexWrap: "wrap",
+              maxWidth: "100%",
             }}
           >
             <button
@@ -467,6 +471,15 @@ export default function Pricing() {
             grid-template-columns: 1fr !important;
             max-width: 420px;
             margin: 0 auto;
+          }
+        }
+        @media (max-width: 420px) {
+          .billing-toggle {
+            padding: 0.375rem;
+          }
+          .billing-toggle > button {
+            padding: 0.5rem 0.875rem !important;
+            white-space: nowrap;
           }
         }
       `}</style>

@@ -86,7 +86,7 @@ export default function useQRGenerator(initialData = "https://qraft.app", extern
   // Download QR — renders the QR into a square export frame of the requested
   // resolution, centered and occupying 85% of the frame.
   const download = useCallback(
-    async (extension = "png", name = "qraft-qr", size = 1024) => {
+    async (extension = "png", name = "qraft-qr", size = 1024, quality = 0.95) => {
       if (!qrInstance) return;
 
       const canvasWidth = size || 1024;
@@ -169,14 +169,23 @@ export default function useQRGenerator(initialData = "https://qraft.app", extern
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(qrImg, layout.x, layout.y, layout.qrSize, layout.qrSize);
+        // PNG is lossless and SVG has no quality concept — only pass a quality
+        // value to the lossy encoders (JPG/WebP).
+        const encodeQuality =
+          extension === "jpeg" || extension === "webp"
+            ? Math.min(1, Math.max(0, quality))
+            : undefined;
         frame.toBlob(
           (blob) => {
-            if (!blob) return;
+            if (!blob) {
+              restore();
+              return;
+            }
             triggerDownload(blob, mime, `${name}.${extension}`);
             restore();
           },
           mime,
-          extension === "jpeg" ? 0.95 : undefined
+          encodeQuality
         );
       };
       qrImg.onerror = () => {

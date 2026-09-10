@@ -34,16 +34,18 @@ export default function FloatingNav() {
       animate={{ y: 0, opacity: 1 }}
       style={{
         position: "fixed",
-        bottom: "2rem",
+        bottom: "1rem",
         left: 0,
         right: 0,
         zIndex: 50,
         display: "flex",
         justifyContent: "center",
         pointerEvents: "none",
+        padding: "0 0.75rem",
       }}
     >
     <div
+      className="floating-nav-pill"
       style={{
         pointerEvents: "auto",
         background: "rgba(255, 255, 255, 0.85)",
@@ -56,6 +58,11 @@ export default function FloatingNav() {
         alignItems: "center",
         gap: "0.5rem",
         boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+        maxWidth: "100%",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        WebkitOverflowScrolling: "touch",
+        whiteSpace: "nowrap",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
@@ -63,7 +70,9 @@ export default function FloatingNav() {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link key={item.name} href={item.href} style={{ textDecoration: "none" }}>
-              <div
+              <motion.div
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -74,12 +83,13 @@ export default function FloatingNav() {
                   color: isActive ? "white" : "var(--color-text-secondary)",
                   fontSize: "0.875rem",
                   fontWeight: isActive ? 600 : 500,
-                  transition: "all 0.2s ease",
+                  transition: "background 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth)",
+                  cursor: "pointer",
                 }}
               >
                 <item.icon size={18} />
                 <span className="nav-label" style={{ display: "none" }}>{item.name}</span>
-              </div>
+              </motion.div>
             </Link>
           );
         })}
@@ -94,21 +104,23 @@ export default function FloatingNav() {
 
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
       
-      <button 
+<motion.button
         onClick={handleSignOut}
-        style={{ 
-          width: "40px", height: "40px", borderRadius: "50%", 
-          display: "flex", alignItems: "center", justifyContent: "center", 
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        style={{
+          width: "40px", height: "40px", borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
           background: "transparent", border: "none", cursor: "pointer",
           color: "var(--color-text-muted)",
-          transition: "color 0.2s ease"
+          transition: "color 0.2s ease, background 0.2s ease"
         }}
-        onMouseEnter={(e) => e.currentTarget.style.color = "var(--color-error)"}
-        onMouseLeave={(e) => e.currentTarget.style.color = "var(--color-text-muted)"}
+        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-error)"; e.currentTarget.style.background = "rgba(239,68,68,0.08)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; e.currentTarget.style.background = "transparent"; }}
         title="Sign Out"
       >
         <LogOut size={18} />
-      </button>
+      </motion.button>
 
       <style jsx>{`
         @media (min-width: 768px) {
@@ -118,6 +130,9 @@ export default function FloatingNav() {
           .nav-create-icon {
             display: none !important;
           }
+        }
+        .floating-nav-pill::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </div>

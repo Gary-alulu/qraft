@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import Scan from "@/models/Scan";
-import TimeSeriesChart from "@/components/dashboard/analytics/TimeSeriesChart";
-import DevicePieChart from "@/components/dashboard/analytics/DevicePieChart";
+import { LazyTimeSeriesChart, LazyDevicePieChart } from "@/components/dashboard/analytics/lazy-charts";
 import TopCountriesTable from "@/components/dashboard/analytics/TopCountriesTable";
 
 export default async function AnalyticsPage() {
@@ -118,13 +117,13 @@ export default async function AnalyticsPage() {
       <div className="q-split" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
         <div style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", minHeight: "350px" }}>
            <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1.5rem" }}>Scans Over Time (30 Days)</h3>
-           <TimeSeriesChart data={timeSeries} />
+           <LazyTimeSeriesChart data={timeSeries} />
         </div>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <div style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", flex: 1 }}>
              <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", marginBottom: "1.5rem" }}>Devices</h3>
-             <DevicePieChart data={devices} />
+             <LazyDevicePieChart data={devices} />
           </div>
           
           <div style={{ background: "var(--color-surface)", padding: "1.5rem", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", flex: 1 }}>

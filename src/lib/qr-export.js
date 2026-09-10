@@ -117,20 +117,51 @@ export function rasterizeSvgToCanvas(framedSvg, canvasWidth, canvasHeight) {
 
 /**
  * Trigger a browser download for a Blob/String payload.
+ *
+ * On mobile browsers the `download` attribute is unreliable (especially iOS
+ * Safari, which ignores it). We first hand the file to the Web Share API so the
+ * user gets the native "Save to Files / Save to Photos" sheet — the canonical
+ * mobile flow — and fall back to an anchor download everywhere else.
  * @param {Blob|string} payload
  * @param {string} mime
  * @param {string} filename
  */
-export function triggerDownload(payload, mime, filename) {
+export async function triggerDownload(payload, mime, filename) {
   const blob = payload instanceof Blob ? payload : new Blob([payload], { type: mime });
+
+  // Prefer the native share sheet with a real file when the platform supports
+  // it (mobile Safari/Chrome). `canShare` guards against desktop browsers and
+  // older webviews that only accept text/url payloads.
+  if (typeof navigator !== "undefined" && navigator.canShare) {
+    try {
+      const file =
+        typeof File !== "undefined" ? new File([blob], filename, { type: mime }) : blob;
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        // Success, or the user dismissed the sheet (AbortError) — either way
+        // the flow is complete and we don't need the download fallback.
+        return;
+      }
+    } catch (err) {
+      // Only fall through to an anchor download for real failures. A dismissed
+      // share sheet (AbortError) means the user declined — swallow it.
+      if (err && err.name === "AbortError") return;
+    }
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.rel = "noopener";
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Some mobile browsers need a small delay before removal to honour the click.
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
 
 /**

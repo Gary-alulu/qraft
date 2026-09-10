@@ -73,6 +73,7 @@ export default function Button({
       disabled={disabled}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
       {...props}
     >
       {content}

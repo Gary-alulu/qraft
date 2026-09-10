@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Loader2, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import AdminTableSkeleton from "@/components/admin/AdminTableSkeleton";
 
 const STATUS_STYLES = {
   active: { color: "var(--color-success)", background: "rgba(16, 185, 129, 0.12)" },
@@ -35,8 +36,12 @@ export default function AdminQRCodesPage() {
 
   if (!codes) {
     return (
-      <div style={{ height: "40vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Loader2 className="animate-spin" size={32} color="var(--color-primary)" />
+      <div style={{ paddingTop: "0.5rem" }}>
+        <div style={{ marginBottom: "2rem" }}>
+          <div className="skeleton" style={{ width: "180px", height: "32px" }} />
+          <div className="skeleton" style={{ width: "260px", height: "14px", marginTop: "0.75rem" }} />
+        </div>
+        <AdminTableSkeleton rows={6} />
       </div>
     );
   }
@@ -50,7 +55,7 @@ export default function AdminQRCodesPage() {
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
         style={{ background: "var(--color-surface)", borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-light)", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "560px" }}>
+        <table className="qrcodes-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", minWidth: "560px" }}>
           <thead>
             <tr style={{ textAlign: "left", color: "var(--color-text-secondary)", borderBottom: "1px solid var(--color-border-light)", background: "rgba(0,0,0,0.015)" }}>
               <th style={{ padding: "0.75rem 1rem" }}>Code</th>
@@ -64,7 +69,7 @@ export default function AdminQRCodesPage() {
           <tbody>
             {codes.map((c) => (
               <tr key={c.id} style={{ borderBottom: "1px solid var(--color-border-light)" }}>
-                <td style={{ padding: "0.75rem 1rem" }}>
+                <td data-label="Code" style={{ padding: "0.75rem 1rem" }}>
                   <div style={{ color: "var(--color-text)", fontWeight: 500, display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     {c.title}
                     {c.shortSlug && (
@@ -75,18 +80,60 @@ export default function AdminQRCodesPage() {
                   </div>
                   <div style={{ color: "var(--color-text-secondary)", fontSize: "0.8125rem" }}>{c.type}</div>
                 </td>
-                <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)" }}>{c.owner}</td>
-                <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)" }}>{c.isDynamic ? "Dynamic" : "Static"}</td>
-                <td style={{ padding: "0.75rem 1rem" }}>
+                <td data-label="Owner" style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)" }}>{c.owner}</td>
+                <td data-label="Type" style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)" }}>{c.isDynamic ? "Dynamic" : "Static"}</td>
+                <td data-label="Status" style={{ padding: "0.75rem 1rem" }}>
                   <span style={{ textTransform: "capitalize", fontSize: "0.8125rem", fontWeight: 600, padding: "0.2rem 0.6rem", borderRadius: "100px", ...(STATUS_STYLES[c.status] || STATUS_STYLES.active) }}>{c.status}</span>
                 </td>
-                <td style={{ padding: "0.75rem 1rem", textAlign: "right", color: "var(--color-text)", fontWeight: 600 }}>{c.scans.toLocaleString()}</td>
-                <td style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)", fontSize: "0.8125rem" }}>{c.createdAt}</td>
+                <td data-label="Scans" style={{ padding: "0.75rem 1rem", textAlign: "right", color: "var(--color-text)", fontWeight: 600 }}>{c.scans.toLocaleString()}</td>
+                <td data-label="Created" style={{ padding: "0.75rem 1rem", color: "var(--color-text-secondary)", fontSize: "0.8125rem" }}>{c.createdAt}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </motion.div>
+
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .qrcodes-table {
+            min-width: 0 !important;
+            display: block;
+          }
+          .qrcodes-table thead {
+            display: none;
+          }
+          .qrcodes-table tbody {
+            display: block;
+          }
+          .qrcodes-table tr {
+            display: block;
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--color-border-light);
+          }
+          .qrcodes-table td {
+            display: block;
+            padding: 0.35rem 0.75rem !important;
+            text-align: left !important;
+            border: none;
+          }
+          .qrcodes-table td[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+          }
+          .qrcodes-table td[data-label="Code"]::before {
+            content: none;
+          }
+          .qrcodes-table td[data-label="Code"] {
+            padding: 0.5rem 0.75rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

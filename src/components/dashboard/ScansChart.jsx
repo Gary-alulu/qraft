@@ -25,14 +25,16 @@ export default function ScansChart({ data = [] }) {
         borderRadius: "var(--radius-xl)",
         border: "1px solid var(--color-border-light)",
         boxShadow: "var(--shadow-sm)",
-        height: "400px",
+        height: "clamp(320px, 55vh, 400px)",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <div style={{ marginBottom: "1.5rem" }}>
         <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)" }}>Scans Over Time</h3>
         <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>Last 7 days performance</p>
       </div>
-      <div style={{ width: "100%", height: "300px" }}>
+      <div style={{ width: "100%", flex: 1, minHeight: 0, overflow: "hidden", marginLeft: "4px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>

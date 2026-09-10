@@ -51,7 +51,19 @@ const QRCodeSchema = new mongoose.Schema(
     scansCount: {
       type: Number,
       default: 0,
-    }
+    },
+    expiresAt: {
+      type: Date,
+      default: null,
+    },
+    scanabilityScore: {
+      type: Number,
+      default: 95,
+    },
+    campaign: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

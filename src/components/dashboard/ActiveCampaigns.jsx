@@ -18,7 +18,7 @@ export default function ActiveCampaigns({ campaigns = [] }) {
         overflow: "hidden",
       }}
     >
-      <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--color-border-light)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--color-border-light)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <h3 style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--color-text)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Activity size={18} color="var(--color-success)" /> Active Campaigns
@@ -45,8 +45,8 @@ export default function ActiveCampaigns({ campaigns = [] }) {
           </Link>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+        <div className="ac-table-scroll" style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table className="ac-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
             <thead>
               <tr style={{ background: "rgba(0,0,0,0.02)" }}>
                 <th style={{ padding: "1rem 1.5rem", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--color-text-muted)", fontWeight: 600 }}>Campaign</th>
@@ -87,6 +87,23 @@ export default function ActiveCampaigns({ campaigns = [] }) {
           </table>
         </div>
       )}
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .ac-table th,
+          .ac-table td {
+            padding: 0.75rem 0.875rem !important;
+          }
+        }
+        @media (max-width: 560px) {
+          .ac-table th:nth-child(4),
+          .ac-table td:nth-child(4),
+          .ac-table th:nth-child(5),
+          .ac-table td:nth-child(5) {
+            display: none;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 }

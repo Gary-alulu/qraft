@@ -13,11 +13,13 @@ export function AccordionItem({ title, children, isOpen, onToggle, icon }) {
       <button
         type="button"
         onClick={onToggle}
+        aria-expanded={isOpen}
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
+          minHeight: "48px",
           padding: "1.125rem 0",
           border: "none",
           background: "transparent",

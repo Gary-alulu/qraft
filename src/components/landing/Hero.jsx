@@ -135,6 +135,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
+              className="hero-cta"
               style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
             >
               <Button variant="accent" size="lg" href="/studio" style={{ fontWeight: 600 }}>
@@ -150,6 +151,7 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.6 }}
+              className="hero-proof"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -407,6 +409,13 @@ export default function Hero() {
           .hero-grid p {
             margin-left: auto;
             margin-right: auto;
+          }
+          .hero-cta,
+          .hero-proof {
+            justify-content: center;
+          }
+          .hero-proof > div {
+            text-align: left;
           }
         }
       `}</style>

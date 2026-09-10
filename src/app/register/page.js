@@ -42,6 +42,7 @@ function RegisterContent() {
         password,
         options: {
           data: { full_name: fullName, first_name: firstName.trim(), last_name: lastName.trim() },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
       });
 
@@ -52,13 +53,14 @@ function RegisterContent() {
       }
 
       if (data?.session) {
-        // Session created immediately -> continue where the user left off.
+        // Email confirmation disabled -> session created immediately.
         window.location.href = next;
         return;
       }
 
-      // Email confirmation required.
-      setMessage("Check your email to confirm your account before signing in.");
+      // Email confirmation required: Supabase sent a confirmation link to the
+      // user's inbox (Qraft-branded template configured in the Supabase dashboard).
+      setMessage("Almost done! We sent a confirmation link to your email. Click it to verify your address and finish creating your account.");
       setLoading(false);
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -68,7 +70,7 @@ function RegisterContent() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "1.5rem", maxHeight: "100vh", overflowY: "auto", margin: "0 auto" }}>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         style={{ width: "100%", maxWidth: "400px", background: "var(--color-surface)", borderRadius: "var(--radius-2xl)", padding: "1.75rem", boxShadow: "var(--shadow-xl)", border: "1px solid var(--color-border-light)", margin: "auto" }}
@@ -80,26 +82,27 @@ function RegisterContent() {
         </div>
 
         {error && (
-          <div style={{ 
-            background: "rgba(239, 68, 68, 0.1)", 
-            color: "var(--color-error)", 
-            padding: "0.75rem 1rem", 
-            borderRadius: "var(--radius-md)", 
-            fontSize: "0.875rem", 
+          <div style={{
+            background: "rgba(239, 68, 68, 0.1)",
+            color: "var(--color-error)",
+            padding: "0.75rem 1rem",
+            borderRadius: "var(--radius-md)",
+            fontSize: "0.875rem",
             marginBottom: "1.25rem",
-            border: "1px solid rgba(239, 68, 68, 0.2)"
+            border: "1px solid rgba(239, 68, 68, 0.2)",
+            overflowWrap: "break-word"
           }}>
             {error}
           </div>
         )}
 
         {message && (
-          <div style={{ 
-            background: "rgba(0, 212, 255, 0.08)", 
-            color: "var(--color-secondary-dark)", 
-            padding: "0.75rem 1rem", 
-            borderRadius: "var(--radius-md)", 
-            fontSize: "0.875rem", 
+          <div style={{
+            background: "rgba(0, 212, 255, 0.08)",
+            color: "var(--color-secondary-dark)",
+            padding: "0.75rem 1rem",
+            borderRadius: "var(--radius-md)",
+            fontSize: "0.875rem",
             marginBottom: "1.25rem",
             border: "1px solid rgba(0, 212, 255, 0.25)"
           }}>
@@ -109,36 +112,36 @@ function RegisterContent() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div className="name-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-            <Input 
-              label="First name" 
-              placeholder="Gary" 
-              value={firstName} 
-              onChange={(e) => setFirstName(e.target.value)} 
-              required 
+            <Input
+              label="First name"
+              placeholder="Gary"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
             />
-            <Input 
-              label="Last name" 
-              placeholder="Alulu" 
-              value={lastName} 
-              onChange={(e) => setLastName(e.target.value)} 
-              required 
+            <Input
+              label="Last name"
+              placeholder="Alulu"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
             />
           </div>
-          <Input 
-            label="Email" 
-            type="email" 
-            placeholder="gary@example.com" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
+          <Input
+            label="Email"
+            type="email"
+            placeholder="gary@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
-          <Input 
-            label="Password" 
-            type="password" 
-            placeholder="••••••••" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <Button type="submit" variant="primary" loading={loading} style={{ width: "100%", marginTop: "0.25rem" }}>
             Sign Up

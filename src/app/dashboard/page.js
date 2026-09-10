@@ -5,9 +5,10 @@ import QRCode from "@/models/QRCode";
 import Scan from "@/models/Scan";
 import Folder from "@/models/Folder";
 import MetricsRow from "@/components/dashboard/MetricsRow";
-import ScansChart from "@/components/dashboard/ScansChart";
+import { LazyScansChart } from "@/components/dashboard/lazy-scans";
 import RecentCodesTable from "@/components/dashboard/RecentCodesTable";
 import ActiveCampaigns from "@/components/dashboard/ActiveCampaigns";
+import SmartAlertsBanner from "@/components/dashboard/SmartAlertsBanner";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -138,11 +139,13 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      <SmartAlertsBanner />
+
       <MetricsRow metrics={metrics} />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem", marginTop: "2rem" }}>
         <ActiveCampaigns campaigns={campaigns} />
-        <ScansChart data={chartData} />
+        <LazyScansChart data={chartData} />
         <RecentCodesTable codes={formattedCodes} />
       </div>
     </div>

@@ -220,8 +220,8 @@ export default function QRCreatorDemo() {
                     type="button"
                     onClick={() => setFgColor(c)}
                     style={{
-                      width: "32px",
-                      height: "32px",
+                      width: "40px",
+                      height: "40px",
                       borderRadius: "50%",
                       background: c,
                       border: fgColor === c ? "3px solid var(--color-secondary)" : "3px solid transparent",
@@ -242,25 +242,46 @@ export default function QRCreatorDemo() {
           {/* QR Preview */}
           <div
             style={{
-              padding: "2rem",
+              padding: "1.5rem",
               background: "white",
               borderRadius: "var(--radius-xl)",
               boxShadow: "var(--shadow-md)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
             }}
           >
-            <div ref={qrContainerRef} style={{ width: "220px", height: "220px" }} />
+            <div ref={qrContainerRef} className="demo-qr" style={{ width: "min(220px, 100%)", maxWidth: "100%" }} />
           </div>
         </motion.div>
       </div>
 
       <style jsx global>{`
+        .demo-qr {
+          aspect-ratio: 1 / 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .demo-qr > svg {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 220px;
+          max-height: 220px;
+        }
         @media (max-width: 700px) {
           .demo-grid {
             grid-template-columns: 1fr !important;
             text-align: center;
+          }
+          .demo-qr {
+            margin: 0 auto;
+          }
+        }
+        @media (max-width: 480px) {
+          .demo-grid {
+            padding: 1.25rem !important;
           }
         }
       `}</style>

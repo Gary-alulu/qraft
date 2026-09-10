@@ -8,7 +8,7 @@ export default function TimeSeriesChart({ data }) {
   }
 
   return (
-    <div style={{ width: '100%', height: '260px' }}>
+    <div style={{ width: '100%', height: '260px', overflow: 'hidden', marginLeft: '4px' }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}
