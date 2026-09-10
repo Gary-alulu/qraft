@@ -116,12 +116,31 @@ export function rasterizeSvgToCanvas(framedSvg, canvasWidth, canvasHeight) {
 }
 
 /**
+ * Decide whether the native share sheet should be preferred over a direct
+ * download. The `share`/`canShare` APIs are only meant for touch-first mobile
+ * environments (iOS Safari ignores `download`, so the sheet is required there).
+ * On desktop — including Windows, where Chrome exposes the system share sheet —
+ * a plain anchor download is the expected behaviour.
+ */
+function prefersShareSheet() {
+  if (typeof navigator === "undefined" || typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return true;
+  const touchPoints = navigator.maxTouchPoints || 0;
+  const coarse =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches;
+  return coarse && touchPoints > 1;
+}
+
+/**
  * Trigger a browser download for a Blob/String payload.
  *
  * On mobile browsers the `download` attribute is unreliable (especially iOS
  * Safari, which ignores it). We first hand the file to the Web Share API so the
  * user gets the native "Save to Files / Save to Photos" sheet — the canonical
- * mobile flow — and fall back to an anchor download everywhere else.
+ * mobile flow — and fall back to an anchor download everywhere else (desktop
+ * downloads directly, no share popup).
  * @param {Blob|string} payload
  * @param {string} mime
  * @param {string} filename
@@ -129,10 +148,9 @@ export function rasterizeSvgToCanvas(framedSvg, canvasWidth, canvasHeight) {
 export async function triggerDownload(payload, mime, filename) {
   const blob = payload instanceof Blob ? payload : new Blob([payload], { type: mime });
 
-  // Prefer the native share sheet with a real file when the platform supports
-  // it (mobile Safari/Chrome). `canShare` guards against desktop browsers and
-  // older webviews that only accept text/url payloads.
-  if (typeof navigator !== "undefined" && navigator.canShare) {
+  // Prefer the native share sheet with a real file on touch-first devices
+  // (mobile Safari/Chrome). Desktop always downloads directly.
+  if (prefersShareSheet() && navigator.canShare) {
     try {
       const file =
         typeof File !== "undefined" ? new File([blob], filename, { type: mime }) : blob;
