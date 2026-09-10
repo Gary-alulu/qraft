@@ -80,6 +80,17 @@ function StudioContent() {
   qrInstanceRef.current = qrInstance;
 
   const handleGenerate = useCallback((newDataString) => {
+    const dyn = isDynamicRef.current;
+    const slug = savedSlugRef.current;
+    if (dyn && slug) {
+      // The QR is already connected to the tracker via /r/<slug>. Never
+      // clobber that link with the raw destination — keep the code stable and
+      // only refresh the backend record (destination/title edits) so the slug
+      // keeps forwarding to the latest target.
+      if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+      autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
+      return;
+    }
     setData(newDataString);
     if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
     autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
