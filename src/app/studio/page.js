@@ -47,6 +47,7 @@ function StudioContent() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [savedSlug, setSavedSlug] = useState(null);
 
   const scanabilityContext = useMemo(() => ({
     type: activeType,
@@ -54,7 +55,7 @@ function StudioContent() {
     isDynamic,
   }), [activeType, formData, isDynamic]);
 
-  const { data, setData, options, updateOptions, attachTo, download, scanability } = useQRGenerator("https://qraft.app", scanabilityContext);
+  const { data, setData, options, updateOptions, attachTo, download, scanability, qrInstance } = useQRGenerator("https://qraft.app", scanabilityContext);
 
   // Load existing QR data if editing
   useEffect(() => {
@@ -81,6 +82,7 @@ function StudioContent() {
           if (qr.isDynamic && qr.shortSlug) {
             setData(`${window.location.origin}/r/${qr.shortSlug}`);
           }
+          setSavedSlug(qr.shortSlug || null);
         }
       } catch (err) {
         console.error("Failed to load QR configuration for edit", err);
@@ -95,11 +97,11 @@ function StudioContent() {
     setData(newDataString);
   }, [setData]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!session) {
       const studioPath = window.location.pathname + window.location.search;
       router.push(`/login?next=${encodeURIComponent(studioPath)}`);
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -150,11 +152,18 @@ function StudioContent() {
       const result = await res.json();
       setSaveStatus("success");
 
-      if (!editId && isDynamic && result.data?.shortSlug) {
-        const dynamicUrl = `${window.location.origin}/r/${result.data.shortSlug}`;
+      const shortSlug = result.data?.shortSlug || null;
+      if (shortSlug) {
+        setSavedSlug(shortSlug);
+      }
+
+      if (isDynamic && shortSlug) {
+        const dynamicUrl = `${window.location.origin}/r/${shortSlug}`;
         setData(dynamicUrl);
-        // Optionally update URL to edit mode
-        router.replace(`/studio?edit=${result.data._id}`);
+        qrInstance?.update({ ...options, data: dynamicUrl });
+        if (!editId) {
+          router.replace(`/studio?edit=${result.data._id}`);
+        }
       }
 
       // Trigger first-QR-of-the-day celebration if the backend says so.
@@ -174,15 +183,25 @@ function StudioContent() {
       }
 
       setTimeout(() => setSaveStatus(null), 3000);
+      return true;
     } catch (err) {
       console.error("Save error:", err);
       setErrorMessage(err.message || "Save failed");
       setSaveStatus("error");
       setTimeout(() => setSaveStatus(null), 4000);
+      return false;
     } finally {
       setSaving(false);
     }
-  };
+  }, [session, router, formData, activeType, isDynamic, editId, options, qrInstance, setData]);
+
+  const handleDownload = useCallback(async (extension, name, size, quality) => {
+    if (isDynamic && !savedSlug) {
+      const ok = await handleSave();
+      if (!ok) return;
+    }
+    await download(extension, name, size, quality);
+  }, [isDynamic, savedSlug, handleSave, download]);
 
   if (loadingConfig) {
     return (
@@ -250,7 +269,7 @@ function StudioContent() {
 
       <StudioLayout
         leftPanel={<QRTypeSelector activeType={activeType} setActiveType={setActiveType} formData={formData} setFormData={setFormData} onGenerate={handleGenerate} isDynamic={isDynamic} setIsDynamic={setIsDynamic} />}
-        centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={download} />}
+        centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={handleDownload} />}
         rightPanel={<DesignPanel options={options} updateOptions={updateOptions} />}
       />
 
