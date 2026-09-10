@@ -16,7 +16,6 @@ function RegisterContent() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const searchParams = useSearchParams();
   const next = getSafeNext(searchParams.get("next"));
   const nextQuery = next ? `?next=${encodeURIComponent(next)}` : "";
@@ -25,7 +24,6 @@ function RegisterContent() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setMessage("");
 
     if (!isSupabaseAuthConfigured()) {
       setError("Authentication is not configured yet. Please contact support.");
@@ -53,14 +51,12 @@ function RegisterContent() {
       }
 
       if (data?.session) {
-        // Email confirmation disabled -> session created immediately.
+        // Sign-up complete -> straight into the app.
         window.location.href = next;
         return;
       }
 
-      // Email confirmation required: Supabase sent a confirmation link to the
-      // user's inbox (Qraft-branded template configured in the Supabase dashboard).
-      setMessage("Almost done! We sent a confirmation link to your email. Click it to verify your address and finish creating your account.");
+      setError("Your account was created but we couldn't sign you in. Please try signing in instead.");
       setLoading(false);
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -93,20 +89,6 @@ function RegisterContent() {
             overflowWrap: "break-word"
           }}>
             {error}
-          </div>
-        )}
-
-        {message && (
-          <div style={{
-            background: "rgba(0, 212, 255, 0.08)",
-            color: "var(--color-secondary-dark)",
-            padding: "0.75rem 1rem",
-            borderRadius: "var(--radius-md)",
-            fontSize: "0.875rem",
-            marginBottom: "1.25rem",
-            border: "1px solid rgba(0, 212, 255, 0.25)"
-          }}>
-            {message}
           </div>
         )}
 
