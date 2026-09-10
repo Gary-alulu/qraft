@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, Suspense } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
 import { useSession } from "@/components/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -49,6 +49,19 @@ function StudioContent() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [savedSlug, setSavedSlug] = useState(null);
 
+  // Refs mirror the latest render values so background async work (auto-track)
+  // never reads stale state.
+  const sessionRef = useRef(session);
+  const activeTypeRef = useRef(activeType);
+  const formDataRef = useRef(formData);
+  const isDynamicRef = useRef(isDynamic);
+  const editIdRef = useRef(editId);
+  const savedSlugRef = useRef(savedSlug);
+  const optionsRef = useRef(null);
+  const qrInstanceRef = useRef(null);
+  const autoTrackLockRef = useRef(false);
+  const autoTrackTimerRef = useRef(null);
+
   const scanabilityContext = useMemo(() => ({
     type: activeType,
     contentData: formData[activeType] || {},
@@ -56,6 +69,77 @@ function StudioContent() {
   }), [activeType, formData, isDynamic]);
 
   const { data, setData, options, updateOptions, attachTo, download, scanability, qrInstance } = useQRGenerator("https://qraft.app", scanabilityContext);
+
+  sessionRef.current = session;
+  activeTypeRef.current = activeType;
+  formDataRef.current = formData;
+  isDynamicRef.current = isDynamic;
+  editIdRef.current = editId;
+  savedSlugRef.current = savedSlug;
+  optionsRef.current = options;
+  qrInstanceRef.current = qrInstance;
+
+  const handleGenerate = useCallback((newDataString) => {
+    setData(newDataString);
+    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+    autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
+  }, [setData, runAutoTrack]);
+
+  useEffect(() => () => {
+    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+  }, []);
+
+  // Create/refresh the backend record for a generated dynamic QR automatically
+  // so tracking data appears on the dashboard without an explicit save. Runs a
+  // debounce after the last generation event; once a record exists, later
+  // generations update it (PUT) instead of creating duplicates.
+  const runAutoTrack = useCallback(async () => {
+    if (autoTrackLockRef.current) return;
+
+    const dyn = isDynamicRef.current;
+    const content = formDataRef.current[activeTypeRef.current] || {};
+    const rawDest = (content.url || "").trim();
+    if (!dyn || rawDest === "https://qraft.app" || !/^https?:\/\/[^\s]+$/i.test(rawDest)) return;
+    if (!sessionRef.current) return;
+
+    const editIdNow = editIdRef.current;
+    autoTrackLockRef.current = true;
+    try {
+      const title = formDataRef.current._title ||
+        `${activeTypeRef.current.charAt(0).toUpperCase() + activeTypeRef.current.slice(1)} QR Code`;
+
+      const res = await fetch(editIdNow ? `/api/qrcodes/${editIdNow}` : "/api/qrcodes", {
+        method: editIdNow ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          type: activeTypeRef.current,
+          contentData: content,
+          isDynamic: true,
+          destinationUrl: rawDest,
+          designOptions: optionsRef.current,
+        }),
+      });
+      if (!res.ok) return;
+
+      const result = await res.json();
+      const shortSlug = result.data?.shortSlug;
+      if (shortSlug) {
+        savedSlugRef.current = shortSlug;
+        const dynamicUrl = `${window.location.origin}/r/${shortSlug}`;
+        setData(dynamicUrl);
+        qrInstanceRef.current?.update({ ...optionsRef.current, data: dynamicUrl });
+        if (!editIdNow) {
+          editIdRef.current = result.data._id;
+          router.replace(`/studio?edit=${result.data._id}`);
+        }
+      }
+    } catch (err) {
+      console.error("Auto-track save failed:", err);
+    } finally {
+      autoTrackLockRef.current = false;
+    }
+  }, [router, setData]);
 
   // Load existing QR data if editing
   useEffect(() => {
@@ -93,10 +177,6 @@ function StudioContent() {
     fetchQR();
   }, [editId, updateOptions, setData]);
 
-  const handleGenerate = useCallback((newDataString) => {
-    setData(newDataString);
-  }, [setData]);
-
   const handleSave = useCallback(async () => {
     if (!session) {
       const studioPath = window.location.pathname + window.location.search;
@@ -108,6 +188,16 @@ function StudioContent() {
     setSaveStatus(null);
 
     try {
+      // Wait for any in-flight auto-track create to settle so a manual save
+      // reuses the same record instead of creating a duplicate.
+      if (autoTrackLockRef.current) {
+        const deadline = Date.now() + 2000;
+        while (autoTrackLockRef.current && Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 100));
+        }
+      }
+      const effectiveEditId = editIdRef.current || editId;
+
       const contentData = formData[activeType] || {};
       const title = formData._title || `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} QR Code`;
       
@@ -124,8 +214,8 @@ function StudioContent() {
         }
       }
 
-      const method = editId ? "PUT" : "POST";
-      const url = editId ? `/api/qrcodes/${editId}` : "/api/qrcodes";
+      const method = effectiveEditId ? "PUT" : "POST";
+      const url = effectiveEditId ? `/api/qrcodes/${effectiveEditId}` : "/api/qrcodes";
 
       const res = await fetch(url, {
         method,
@@ -161,7 +251,7 @@ function StudioContent() {
         const dynamicUrl = `${window.location.origin}/r/${shortSlug}`;
         setData(dynamicUrl);
         qrInstance?.update({ ...options, data: dynamicUrl });
-        if (!editId) {
+        if (!effectiveEditId) {
           router.replace(`/studio?edit=${result.data._id}`);
         }
       }
