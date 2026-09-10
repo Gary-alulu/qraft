@@ -118,6 +118,7 @@ export default async function DashboardPage() {
     scans: code.scansCount || 0,
     status: code.status,
     isDynamic: !!code.isDynamic,
+    shortSlug: code.shortSlug || null,
     date: code.createdAt.toISOString().split("T")[0]
   }));
 

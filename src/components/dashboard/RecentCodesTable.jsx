@@ -151,7 +151,7 @@ export default function RecentCodesTable({ codes, onUpdate, onDelete }) {
                     ) : (
                       <>
                         {code.status === "active" && code.isDynamic && (
-                          <a href={`/r/${code.id}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }} title="Test Link">
+                          <a href={`/r/${code.shortSlug || code.id}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }} title={`Test Link: /r/${code.shortSlug || code.id}`}>
                             <ExternalLink size={18} />
                           </a>
                         )}

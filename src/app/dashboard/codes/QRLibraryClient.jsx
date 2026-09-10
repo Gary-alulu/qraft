@@ -243,8 +243,11 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
                   <div style={{ height: "1px", background: "var(--color-border-light)" }} />
                   
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                     {code.isDynamic ? (
-                       <Link href={`/r/${code.id}`} style={{ fontSize: "0.8125rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>Test Link</Link>
+                     {code.isDynamic && code.shortSlug ? (
+                       <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                         <Link href={`/r/${code.shortSlug}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.8125rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>Test Link</Link>
+                         <span style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }} title="Trackable link">/r/{code.shortSlug}</span>
+                       </div>
                      ) : (
                        <span style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>Not trackable</span>
                      )}

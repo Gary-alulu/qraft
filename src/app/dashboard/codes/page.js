@@ -35,6 +35,7 @@ export default async function QRLibraryPage() {
     scans: c.scansCount || 0,
     status: c.status,
     isDynamic: !!c.isDynamic,
+    shortSlug: c.shortSlug || null,
     folderId: c.folderId?.toString() || null,
     date: c.createdAt.toISOString().split("T")[0]
   }));
