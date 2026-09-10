@@ -77,8 +77,14 @@ export async function GET(req, { params }) {
       });
     }
 
-    // 7. Redirect the user to the validated destination
-    return NextResponse.redirect(destination, 302);
+    // 7. Redirect the user to the validated destination. Never cache this
+    //    response: every scan must reach the engine so counts stay accurate.
+    const response = NextResponse.redirect(destination, 302);
+    response.headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+    response.headers.set("Surrogate-Control", "no-store");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    return response;
 
   } catch (error) {
     console.error("REDIRECT ENGINE ERROR:", error);
