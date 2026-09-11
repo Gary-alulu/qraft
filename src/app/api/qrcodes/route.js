@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import QRDesign from "@/models/QRDesign";
 import { createUniqueShortSlug, validateDestinationUrl, isSameOrigin } from "@/lib/security";
+import { validateDocumentFileId } from "@/lib/supabase-server";
 
 // Hosts the redirect engine is allowed to send users to.
 // Configure via REDIRECT_ALLOWED_HOSTS (comma-separated). When unset, any
@@ -55,6 +56,20 @@ const body = await req.json();
         if (!safeDestination) {
           return NextResponse.json(
             { error: "Invalid or disallowed destination URL" },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Document QRs must reference a file that actually exists in storage.
+      // Never create a code that points at a missing/corrupt upload. Only
+      // verified when the code carries a live (non-empty) URL + fileId.
+      const hasLiveDocUrl = Boolean(contentData?.fileId && contentData?.url);
+      if (type === "document" && hasLiveDocUrl) {
+        const docCheck = await validateDocumentFileId(contentData.fileId);
+        if (!docCheck.valid) {
+          return NextResponse.json(
+            { error: docCheck.error || "Referenced document no longer available. Please re-upload the file." },
             { status: 400 }
           );
         }

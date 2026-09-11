@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import { isSameOrigin } from "@/lib/security";
-import { deleteStoredDocument } from "@/lib/supabase-server";
+import { deleteStoredDocument, listStoredDocuments } from "@/lib/supabase-server";
 
 /**
  * Auto-delete stored documents (PDFs) to reclaim storage.
@@ -11,6 +11,10 @@ import { deleteStoredDocument } from "@/lib/supabase-server";
  * usage down, any document older than DOCUMENT_RETENTION_DAYS (7 days) since
  * its last save is automatically removed from storage, and its QR is paused
  * and marked as expired so it never points at a dead file.
+ *
+ * Also reaps orphaned uploads — objects in the bucket no QR references at all
+ * (uploads that failed verification, were superceded by a newer file, or whose
+ * QR was deleted). They would otherwise leak storage/index growth forever.
  *
  * Invoked by Vercel Cron (see /vercel.json). Protect with CRON_SECRET.
  * When CRON_SECRET is not configured, requires a same-origin request so it can
@@ -75,12 +79,49 @@ export async function GET(req) {
       }
     }
 
+    // Reap orphans: every object in the bucket that no QR references. These are
+    // uploads that never got wired into a QR (failed verification, aborted tab)
+    // or files replaced/deleted after their QR changed. Without this they would
+    // accumulate and bloat storage indefinitely.
+    let orphaned = 0;
+    let orphanFailures = 0;
+    try {
+      const referenced = await QRCode.find({
+        "contentData.fileId": { $exists: true, $ne: "" },
+      }).distinct("contentData.fileId");
+      const referencedSet = new Set(referenced);
+
+      const { objects, error: listError } = await listStoredDocuments();
+      if (listError) {
+        throw new Error(listError);
+      }
+
+      for (const obj of objects || []) {
+        if (referencedSet.has(obj.name)) continue;
+
+        const createdAt = obj.created_at ? new Date(obj.created_at).getTime() : Date.now();
+        if (createdAt > Date.now() - RETENTION_MS) continue; // too fresh, retry later
+
+        const { deleted: ok, error } = await deleteStoredDocument(obj.name);
+        if (ok) {
+          orphaned += 1;
+        } else {
+          orphanFailures += 1;
+          failures.push({ orphanPath: obj.name, error });
+        }
+      }
+    } catch (err) {
+      console.error("ORPHAN REAP ERROR:", err);
+    }
+
     return NextResponse.json({
       success: true,
       retentionDays: DOCUMENT_RETENTION_DAYS,
       scanned: stale.length,
       deleted,
       failed,
+      orphaned,
+      orphanFailures,
       failures: failures.slice(0, 20),
     });
   } catch (error) {

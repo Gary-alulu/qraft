@@ -15,7 +15,7 @@ import {
   Wifi, MapPin, Type, FileText,
 } from "lucide-react";
 import { DATA_BUILDERS } from "@/lib/qr-data-builders";
-import { supabase, isSupabaseConfigured, DOCUMENTS_BUCKET } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, DOCUMENTS_BUCKET, verifyUploadedFile } from "@/lib/supabase";
 
 const categories = [
   {
@@ -162,6 +162,13 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       if (uploadError) {
         throw new Error(uploadError.message || "Upload failed");
       }
+
+      // Verify the uploaded bytes actually made it to storage and are the same
+      // size as the local file BEFORE wiring the URL into the QR. Without this,
+      // a truncated/partial upload (or an expired signed URL) would silently
+      // produce a QR that points at a missing or corrupt file. Never generate
+      // output off unverified upload data.
+      await verifyUploadedFile(urlData.publicUrl, file.size);
 
       handleDataChange("url", urlData.publicUrl);
       handleDataChange("filename", file.name);

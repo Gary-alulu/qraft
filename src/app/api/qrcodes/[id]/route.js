@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import QRDesign from "@/models/QRDesign";
 import { createUniqueShortSlug, validateDestinationUrl, isSameOrigin } from "@/lib/security";
+import { validateDocumentFileId } from "@/lib/supabase-server";
 
 const parseAllowedHosts = () => {
   const raw = process.env.REDIRECT_ALLOWED_HOSTS;
@@ -85,6 +86,22 @@ export async function PUT(req, { params }) {
         }
       } else {
         safeDestination = null;
+      }
+    }
+
+    // Document QRs depend on a file living in storage. Refuse to persist a
+    // document code that references a file we can no longer find — otherwise a
+    // scanned code would silently 404. Only verified when the code is live
+    // (carries a non-empty URL and fileId); paused/expired code re-saves skip it.
+    const isDocument = existingQr.type === "document" || body.type === "document";
+    const hasLiveDocUrl = Boolean(contentData?.fileId && contentData?.url);
+    if (isDocument && hasLiveDocUrl) {
+      const docCheck = await validateDocumentFileId(contentData.fileId);
+      if (!docCheck.valid) {
+        return NextResponse.json(
+          { error: docCheck.error || "Referenced document no longer available. Please re-upload the file." },
+          { status: 400 }
+        );
       }
     }
 

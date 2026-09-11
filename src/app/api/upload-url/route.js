@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -17,6 +18,11 @@ const SERVICE_ROLE =
 
 const BUCKET = "pdf";
 const MAX_SIZE = 10 * 1024 * 1024;
+const MAX_FILENAME_LENGTH = 255;
+
+// Reject path traversal / injection attempts in the filename long before any
+// storage layer sees it.
+const SAFE_FILENAME_RE = /^[a-zA-Z0-9._-]+$/;
 
 export async function POST(req) {
   if (!SUPABASE_URL || !SERVICE_ROLE) {
@@ -29,19 +35,40 @@ export async function POST(req) {
   try {
     const { filename, size } = await req.json().catch(() => ({}));
 
-    if (!filename || typeof filename !== "string") {
+    if (typeof filename !== "string" || filename.trim() === "") {
       return NextResponse.json({ error: "Missing filename" }, { status: 400 });
     }
+    if (filename.length > MAX_FILENAME_LENGTH) {
+      return NextResponse.json(
+        { error: "Filename is too long" },
+        { status: 400 }
+      );
+    }
 
-    if (!size || Number(size) > MAX_SIZE) {
+    const numericSize = Number(size);
+    if (
+      !Number.isFinite(numericSize) ||
+      numericSize <= 0 ||
+      numericSize > MAX_SIZE
+    ) {
       return NextResponse.json(
         { error: "File must be under 10MB" },
         { status: 400 }
       );
     }
 
-    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `${Date.now()}-${safeName}`;
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/^\.+/, "");
+    if (!safeName || !SAFE_FILENAME_RE.test(safeName)) {
+      return NextResponse.json(
+        { error: "Invalid filename" },
+        { status: 400 }
+      );
+    }
+
+    // Unique path per upload: timestamp + random suffix prevents two uploads
+    // of the same-named file (rapid retries, multiple tabs) from silently
+    // overwriting each other, which would corrupt or orphan the previous file.
+    const storagePath = `${Date.now()}-${randomBytes(6).toString("hex")}-${safeName}`;
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
       auth: { persistSession: false, autoRefreshToken: false },
