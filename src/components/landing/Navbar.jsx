@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import UserAvatar from "@/components/ui/UserAvatar";
+import { useSession } from "@/components/providers/AuthProvider";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -15,6 +17,7 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useSession();
 
   useEffect(() => {
     function onScroll() {
@@ -124,9 +127,23 @@ export default function Navbar() {
           style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
           className="nav-ctas-desktop"
         >
-          <Button variant="ghost" size="sm" href="/login">
-            Log in
-          </Button>
+          {user ? (
+            <a
+              href="/dashboard"
+              title="Go to dashboard"
+              style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.25rem" }}
+            >
+              <UserAvatar
+                name={user.name || ""}
+                size={32}
+                style={{ cursor: "pointer", border: "1.5px solid var(--color-border-light)", boxShadow: "var(--shadow-sm)" }}
+              />
+            </a>
+          ) : (
+            <Button variant="ghost" size="sm" href="/login" data-cy="nav-login">
+              Log in
+            </Button>
+          )}
           <Button variant="primary" size="sm" href="/studio">
             Create QR
           </Button>
@@ -232,9 +249,15 @@ export default function Navbar() {
             ))}
             <hr style={{ border: "none", borderTop: "1px solid var(--color-border-light)", margin: "0.5rem 0" }} />
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <Button variant="secondary" size="md" href="/login" style={{ flex: 1 }}>
-                Log in
-              </Button>
+              {user ? (
+                <Button variant="secondary" size="md" href="/dashboard" style={{ flex: 1 }}>
+                  Dashboard
+                </Button>
+              ) : (
+                <Button variant="secondary" size="md" href="/login" style={{ flex: 1 }}>
+                  Log in
+                </Button>
+              )}
               <Button variant="primary" size="md" href="/studio" style={{ flex: 1 }}>
                 Create QR
               </Button>
