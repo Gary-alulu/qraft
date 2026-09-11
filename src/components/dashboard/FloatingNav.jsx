@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { LayoutDashboard, QrCode, TrendingUp, Settings, Plus, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, QrCode, TrendingUp, Settings, LogOut, Shield } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useSession } from "@/components/providers/AuthProvider";
 
@@ -98,7 +98,6 @@ export default function FloatingNav() {
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
 
       <Button href="/studio" variant="primary" style={{ borderRadius: "100px", padding: "0.75rem 1.25rem" }}>
-        <Plus size={18} className="nav-create-icon" />
         <span className="nav-label" style={{ display: "none" }}>Create</span>
       </Button>
 
@@ -126,9 +125,6 @@ export default function FloatingNav() {
         @media (min-width: 768px) {
           .nav-label {
             display: inline-block !important;
-          }
-          .nav-create-icon {
-            display: none !important;
           }
         }
         .floating-nav-pill::-webkit-scrollbar {
