@@ -1,5 +1,6 @@
 import FloatingNav from "@/components/dashboard/FloatingNav";
 import Image from "next/image";
+import Link from "next/link";
 import { auth } from "@/auth";
 import UserAvatar from "@/components/ui/UserAvatar";
 import { gravatarUrlFromEmail } from "@/lib/gravatar";
@@ -16,7 +17,9 @@ export default async function DashboardLayout({ children }) {
       {/* Top Header */}
       <header style={{ height: "70px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(1rem, 4vw, 2rem)", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: "22px", width: "auto", display: "block" }} />
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <Image src="/images/nav-logo.png" alt="QRAFT" width={3652} height={1418} style={{ height: "22px", width: "auto", display: "block" }} />
+          </Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <NotificationBell />
