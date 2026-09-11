@@ -175,10 +175,17 @@ function SparkleRing() {
    in, is swept by a scan line, and glows.
 ───────────────────────────────────────────── */
 function AnimatedQR({ svg }) {
-  const fittedSvg = (svg || "").replace(
-    /(width|height)="[^"]*"/g,
-    (attr) => (attr.startsWith("width") ? 'width="100%"' : 'height="100%"')
-  );
+  // Only force-fit the ROOT <svg> element. qr-code-styling embeds <pattern>/
+  // <mask>/gradient defs with their own width/height attributes — those MUST
+  // stay intact or the QR drawing breaks. The global regex route is a bug; we
+  // narrow the transform to the single opening <svg ...> tag, and back it up
+  // with a CSS rule so even an SVG with no explicit size fits its box.
+  const fittedSvg = (svg || "").replace(/<svg([^>]*)>/, (tag, attrs) => {
+    const fitted = attrs
+      .replace(/(\swidth)="[^"]*"/, '$1="100%"')
+      .replace(/(\sheight)="[^"]*"/, '$1="100%"');
+    return `<svg${fitted}>`;
+  });
 
   return (
     <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "0.5rem", marginBottom: "1.25rem" }}>
@@ -211,7 +218,7 @@ function AnimatedQR({ svg }) {
           overflow: "hidden",
         }}
       >
-        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{ __html: fittedSvg }} />
+        <div className="celebration-qr-wrap" style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{ __html: fittedSvg }} />
 
         {/* Scan line sweeping over the QR */}
         <motion.div
@@ -229,6 +236,9 @@ function AnimatedQR({ svg }) {
           }}
         />
       </motion.div>
+      <style>{`
+        .celebration-qr-wrap svg { width: 100% !important; height: 100% !important; display: block; }
+      `}</style>
     </div>
   );
 }
