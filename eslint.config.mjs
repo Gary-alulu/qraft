@@ -12,6 +12,13 @@ const eslintConfig = [
   {
     ignores: [".next/**", "node_modules/**", ".vercel/**", "next-env.d.ts"],
   },
+  {
+    rules: {
+      // Catch Temporal-Dead-Zone bugs like using a const/let in a useCallback
+      // before its declaration in the same scope (crashes at runtime).
+      "no-use-before-define": ["error", { functions: false, classes: true, variables: true }],
+    },
+  },
 ];
 
 export default eslintConfig;
