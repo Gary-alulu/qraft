@@ -7,10 +7,15 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 export default function StudioLayout({ 
   leftPanel, 
   centerPanel, 
-  rightPanel 
+  rightPanel,
+  activeTab: controlledTab,
+  onTabChange: onControlledTabChange,
 }) {
   const isMobile = useMediaQuery("(max-width: 1024px)");
-  const [activeTab, setActiveTab] = useState("content");
+  // Use controlled tab if provided, otherwise fall back to internal state.
+  const [internalTab, setInternalTab] = useState("content");
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+  const setActiveTab = onControlledTabChange || setInternalTab;
 
   if (isMobile) {
     return (
@@ -30,7 +35,7 @@ export default function StudioLayout({
           <div style={{ display: activeTab === "content" ? "block" : "none", padding: "1rem" }}>
             {leftPanel}
           </div>
-          <div style={{ display: activeTab === "preview" ? "flex" : "none", height: "100%", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ display: activeTab === "preview" ? "block" : "none", padding: "1rem" }}>
             {centerPanel}
           </div>
           <div style={{ display: activeTab === "design" ? "block" : "none", padding: "1rem" }}>

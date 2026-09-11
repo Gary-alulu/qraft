@@ -48,6 +48,7 @@ function StudioContent() {
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationQrSvg, setCelebrationQrSvg] = useState(null);
+  const [studioTab, setStudioTab] = useState("content");
   const [savedSlug, setSavedSlug] = useState(null);
 
   // Refs mirror the latest render values so background async work (auto-track)
@@ -375,9 +376,11 @@ function StudioContent() {
       </header>
 
       <StudioLayout
-        leftPanel={<QRTypeSelector activeType={activeType} setActiveType={setActiveType} formData={formData} setFormData={setFormData} onGenerate={handleGenerate} isDynamic={isDynamic} setIsDynamic={setIsDynamic} />}
+        leftPanel={<QRTypeSelector activeType={activeType} setActiveType={setActiveType} formData={formData} setFormData={setFormData} onGenerate={handleGenerate} isDynamic={isDynamic} setIsDynamic={setIsDynamic} onSwitchToPreview={() => setStudioTab("preview")} />}
         centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={handleDownload} />}
         rightPanel={<DesignPanel options={options} updateOptions={updateOptions} />}
+        activeTab={studioTab}
+        onTabChange={setStudioTab}
       />
 
       {/* First QR of the Day celebration */}

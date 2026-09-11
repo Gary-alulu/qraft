@@ -76,7 +76,7 @@ const categories = [
   },
 ];
 
-export default function QRTypeSelector({ activeType, setActiveType, formData, setFormData, onGenerate, isDynamic, setIsDynamic }) {
+export default function QRTypeSelector({ activeType, setActiveType, formData, setFormData, onGenerate, isDynamic, setIsDynamic, onSwitchToPreview }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
@@ -214,6 +214,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       onGenerate(dataString || "https://qraft.app");
       setRegenerating(false);
       setRegenerateDone(true);
+      onSwitchToPreview?.();
       setTimeout(() => setRegenerateDone(false), 1600);
     }, 350);
   };
@@ -696,10 +697,10 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
          <Button variant="primary" style={{ width: "100%" }} onClick={handleGenerateClick} loading={regenerating}>
           {regenerateDone ? (
             <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-              <Check size={16} /> QR Code Refreshed
+              <Check size={16} /> QR Code Generated
             </span>
           ) : (
-            "Regenerate QR Code"
+            "Generate QR Code"
           )}
         </Button>
       </div>
