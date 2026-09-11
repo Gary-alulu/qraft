@@ -23,7 +23,27 @@ export async function GET(req, { params }) {
     // 1. Find the dynamic QR code
     const qr = await QRCode.findOne({ shortSlug: slug, isDynamic: true });
 
-    if (!qr || qr.status !== "active") {
+    if (!qr) {
+      return NextResponse.redirect(new URL("/not-found", req.url));
+    }
+
+    // 1b. A code is terminated when it's no longer "active" OR its expiry date
+    // has passed. Either way it must stop redirecting — scanning it should go
+    // nowhere instead of silently continuing to serve dead traffic.
+    const isExpired = qr.expiresAt && new Date(qr.expiresAt).getTime() <= Date.now();
+    if (qr.status !== "active" || isExpired) {
+      // Fire the expiration/termination notification asynchronously so the user
+      // is told their code stopped redirecting (deduped server-side).
+      if (isExpired && qr.userId) {
+        Promise.resolve().then(async () => {
+          try {
+            const { emitNotification } = await import("@/lib/notifications/engine");
+            await emitNotification(qr.userId, "qr_expired", { qr });
+          } catch (notifErr) {
+            console.error("Expired QR notification error:", notifErr);
+          }
+        });
+      }
       // Could redirect to a custom "Not Found / Inactive" page on Qraft
       return NextResponse.redirect(new URL("/not-found", req.url));
     }
