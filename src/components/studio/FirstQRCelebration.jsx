@@ -171,9 +171,72 @@ function SparkleRing() {
 }
 
 /* ─────────────────────────────────────────────
+   Animated QR: the freshly generated code springs
+   in, is swept by a scan line, and glows.
+───────────────────────────────────────────── */
+function AnimatedQR({ svg }) {
+  const fittedSvg = (svg || "").replace(
+    /(width|height)="[^"]*"/g,
+    (attr) => (attr.startsWith("width") ? 'width="100%"' : 'height="100%"')
+  );
+
+  return (
+    <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "0.5rem", marginBottom: "1.25rem" }}>
+      {/* Pulsing halo */}
+      <motion.div
+        animate={{ opacity: [0.45, 0.9, 0.45], scale: [1, 1.08, 1] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          inset: -16,
+          borderRadius: 28,
+          background: "radial-gradient(circle, rgba(0,212,255,0.4) 0%, rgba(0,212,255,0) 70%)",
+          filter: "blur(6px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* QR card entrance */}
+      <motion.div
+        initial={{ scale: 0.55, opacity: 0, rotate: -8, y: 20 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0, y: 0 }}
+        transition={{ delay: 0.42, type: "spring", stiffness: 230, damping: 16 }}
+        style={{
+          position: "relative",
+          background: "#FFFFFF",
+          borderRadius: 16,
+          padding: 12,
+          boxShadow: "0 12px 40px rgba(30,58,95,0.22)",
+          border: "1px solid rgba(0,212,255,0.35)",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center" }} dangerouslySetInnerHTML={{ __html: fittedSvg }} />
+
+        {/* Scan line sweeping over the QR */}
+        <motion.div
+          initial={{ top: "5%" }}
+          animate={{ top: ["5%", "92%", "5%"] }}
+          transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            left: 8,
+            right: 8,
+            height: 28,
+            borderRadius: 20,
+            background: "linear-gradient(180deg, transparent, rgba(0,212,255,0.4), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+      </motion.div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    Main celebration component
 ───────────────────────────────────────────── */
-export default function FirstQRCelebration({ visible, onDismiss, onCreateAnother }) {
+export default function FirstQRCelebration({ visible, onDismiss, onCreateAnother, qrSvg }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const particlesRef = useRef([]);
@@ -343,11 +406,15 @@ export default function FirstQRCelebration({ visible, onDismiss, onCreateAnother
                 }}
               />
 
-              {/* Checkmark + sparkles */}
-              <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "0.5rem" }}>
-                <AnimatedCheck />
-                <SparkleRing />
-              </div>
+              {/* Checkmark + sparkles, or the actual animated QR */}
+              {qrSvg ? (
+                <AnimatedQR svg={qrSvg} />
+              ) : (
+                <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "0.5rem" }}>
+                  <AnimatedCheck />
+                  <SparkleRing />
+                </div>
+              )}
 
               {/* Headline */}
               <motion.h2

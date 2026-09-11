@@ -47,6 +47,7 @@ function StudioContent() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [loadingConfig, setLoadingConfig] = useState(!!editId);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationQrSvg, setCelebrationQrSvg] = useState(null);
   const [savedSlug, setSavedSlug] = useState(null);
 
   // Refs mirror the latest render values so background async work (auto-track)
@@ -68,7 +69,7 @@ function StudioContent() {
     isDynamic,
   }), [activeType, formData, isDynamic]);
 
-  const { data, setData, options, updateOptions, attachTo, download, scanability, qrInstance } = useQRGenerator("https://qraft.app", scanabilityContext);
+  const { data, setData, options, updateOptions, attachTo, download, scanability, qrInstance, getRawSvg } = useQRGenerator("https://qraft.app", scanabilityContext);
 
   sessionRef.current = session;
   activeTypeRef.current = activeType;
@@ -279,6 +280,11 @@ function StudioContent() {
           if (typeof window !== "undefined") {
             localStorage.setItem("qraft_last_celebration", today);
           }
+          // Capture the freshly generated QR so the celebration can animate it.
+          setCelebrationQrSvg(null);
+          getRawSvg().then((svg) => {
+            if (svg) setCelebrationQrSvg(svg);
+          });
           setShowCelebration(true);
         }
       }
@@ -294,7 +300,7 @@ function StudioContent() {
     } finally {
       setSaving(false);
     }
-  }, [session, router, formData, activeType, isDynamic, editId, options, qrInstance, setData]);
+  }, [session, router, formData, activeType, isDynamic, editId, options, qrInstance, setData, getRawSvg]);
 
   const handleDownload = useCallback(async (extension, name, size, quality) => {
     if (isDynamic && !savedSlug) {
@@ -377,6 +383,7 @@ function StudioContent() {
       {/* First QR of the Day celebration */}
       <FirstQRCelebration
         visible={showCelebration}
+        qrSvg={celebrationQrSvg}
         onDismiss={() => setShowCelebration(false)}
         onCreateAnother={() => {
           // Reset studio form state for a fresh QR
