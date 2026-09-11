@@ -29,7 +29,8 @@ const productionCSP = [
   // data: needed for inline SVG / font fallbacks
   // https://*.supabase.co needed for direct browser PDF uploads to Supabase
   // Storage (signed URL PUT) and Supabase REST calls.
-  "connect-src 'self' blob: data: https://*.supabase.co",
+  // ipwho.is + open.er-api.com are used by usePricing for locale-aware pricing.
+  "connect-src 'self' blob: data: https://*.supabase.co https://ipwho.is https://open.er-api.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
