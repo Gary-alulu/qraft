@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import QRDesign from "@/models/QRDesign";
-import { generateShortSlug, validateDestinationUrl, isSameOrigin } from "@/lib/security";
+import { createUniqueShortSlug, validateDestinationUrl, isSameOrigin } from "@/lib/security";
 
 // Hosts the redirect engine is allowed to send users to.
 // Configure via REDIRECT_ALLOWED_HOSTS (comma-separated). When unset, any
@@ -61,16 +61,26 @@ const body = await req.json();
       }
 
       // 1. Create the QRCode document (secure, high-entropy short slug).
-      const newQr = await QRCode.create({
-      userId: session.user.id,
-      title: title || "Untitled QR Code",
-      type,
-      contentData,
-      isDynamic: !!isDynamic,
-      destinationUrl: safeDestination,
-      folderId: folderId || null,
-      shortSlug: isDynamic ? generateShortSlug(10) : null,
-    });
+      //    A dynamic QR is only trackable through its /r/<slug> link, so the
+      //    slug is allocated up-front and retried on any collision.
+      let newQr = null;
+      for (let attempt = 0; attempt < 3 && !newQr; attempt++) {
+        try {
+          newQr = await QRCode.create({
+            userId: session.user.id,
+            title: title || "Untitled QR Code",
+            type,
+            contentData,
+            isDynamic: !!isDynamic,
+            destinationUrl: safeDestination,
+            folderId: folderId || null,
+            shortSlug: isDynamic ? await createUniqueShortSlug(QRCode) : null,
+          });
+        } catch (err) {
+          if (isDynamic && err?.code === 11000 && attempt < 2) continue;
+          throw err;
+        }
+      }
 
     // 2. Create the associated QRDesign document
     if (designOptions) {

@@ -79,27 +79,6 @@ function StudioContent() {
   optionsRef.current = options;
   qrInstanceRef.current = qrInstance;
 
-  const handleGenerate = useCallback((newDataString) => {
-    const dyn = isDynamicRef.current;
-    const slug = savedSlugRef.current;
-    if (dyn && slug) {
-      // The QR is already connected to the tracker via /r/<slug>. Never
-      // clobber that link with the raw destination — keep the code stable and
-      // only refresh the backend record (destination/title edits) so the slug
-      // keeps forwarding to the latest target.
-      if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
-      autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
-      return;
-    }
-    setData(newDataString);
-    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
-    autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
-  }, [setData, runAutoTrack]);
-
-  useEffect(() => () => {
-    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
-  }, []);
-
   // Create/refresh the backend record for a generated dynamic QR automatically
   // so tracking data appears on the dashboard without an explicit save. Runs a
   // debounce after the last generation event; once a record exists, later
@@ -151,6 +130,27 @@ function StudioContent() {
       autoTrackLockRef.current = false;
     }
   }, [router, setData]);
+
+  const handleGenerate = useCallback((newDataString) => {
+    const dyn = isDynamicRef.current;
+    const slug = savedSlugRef.current;
+    if (dyn && slug) {
+      // The QR is already connected to the tracker via /r/<slug>. Never
+      // clobber that link with the raw destination — keep the code stable and
+      // only refresh the backend record (destination/title edits) so the slug
+      // keeps forwarding to the latest target.
+      if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+      autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
+      return;
+    }
+    setData(newDataString);
+    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+    autoTrackTimerRef.current = setTimeout(runAutoTrack, 800);
+  }, [setData, runAutoTrack]);
+
+  useEffect(() => () => {
+    if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+  }, []);
 
   // Load existing QR data if editing
   useEffect(() => {
@@ -360,7 +360,7 @@ function StudioContent() {
           ) : (
             !isMobile && (
               <a
-                href={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+                href={`/login?next=${encodeURIComponent(`/studio${searchParams.toString() ? `?${searchParams.toString()}` : ""}`)}`}
                 style={{ fontSize: "0.875rem", color: "var(--color-primary)", fontWeight: 500, textDecoration: "none" }}
               >Sign In</a>
             )

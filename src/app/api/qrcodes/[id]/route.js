@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import QRCode from "@/models/QRCode";
 import QRDesign from "@/models/QRDesign";
-import { validateDestinationUrl, isSameOrigin } from "@/lib/security";
+import { createUniqueShortSlug, validateDestinationUrl, isSameOrigin } from "@/lib/security";
 
 const parseAllowedHosts = () => {
   const raw = process.env.REDIRECT_ALLOWED_HOSTS;
@@ -47,7 +47,7 @@ export async function PUT(req, { params }) {
 
     const { id } = await params;
     const body = await req.json();
-    const { title, destinationUrl, status, contentData, designOptions, folderId } = body;
+    const { title, destinationUrl, status, contentData, designOptions, folderId, isDynamic } = body;
 
     await dbConnect();
 
@@ -56,11 +56,26 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
 
-    // Validate redirect target if the code is (or becomes) dynamic.
+    // Trackability invariant: a dynamic QR routes through /r/<slug> and is
+    // only trackable while it has a short slug. We never allow a dynamic code
+    // to be downgraded to static (printed codes encode the redirect link, so
+    // it would silently stop tracking/max out at the already-printed URL).
+    const willBeDynamic = existingQr.isDynamic || isDynamic === true;
+    if (existingQr.isDynamic && isDynamic === false) {
+      return NextResponse.json(
+        { error: "Dynamic QR codes cannot be converted to static." },
+        { status: 400 }
+      );
+    }
+
+    // Validate redirect target if the code is (or becomes) dynamic. A null or
+    // empty value means "keep the existing target" (some types don't carry a
+    // URL in their payload on every save).
     let safeDestination;
-    if (destinationUrl !== undefined) {
-      const isDynamicTarget = existingQr.isDynamic || body.isDynamic === true;
-      if (isDynamicTarget) {
+    let hasDestinationUpdate = false;
+    if (typeof destinationUrl === "string" && destinationUrl.trim() !== "") {
+      hasDestinationUpdate = true;
+      if (willBeDynamic) {
         safeDestination = validateDestinationUrl(destinationUrl, parseAllowedHosts());
         if (!safeDestination) {
           return NextResponse.json(
@@ -73,15 +88,25 @@ export async function PUT(req, { params }) {
       }
     }
 
+    const updates = {
+      ...(title && { title }),
+      ...(hasDestinationUpdate && { destinationUrl: safeDestination }),
+      ...(status && { status }),
+      ...(contentData && { contentData }),
+      ...(folderId !== undefined && { folderId }),
+      ...(willBeDynamic && { isDynamic: true }),
+    };
+
+    // Every dynamic QR must carry a shortSlug so the redirect engine can
+    // track scans. Generate one when a static code is converted to dynamic,
+    // or to self-heal any dynamic record that somehow lost its slug.
+    if (willBeDynamic && !existingQr.shortSlug) {
+      updates.shortSlug = await createUniqueShortSlug(QRCode);
+    }
+
     const updatedQr = await QRCode.findByIdAndUpdate(
       id,
-      {
-        ...(title && { title }),
-        ...(safeDestination !== undefined && { destinationUrl: safeDestination }),
-        ...(status && { status }),
-        ...(contentData && { contentData }),
-        ...(folderId !== undefined && { folderId }),
-      },
+      updates,
       { new: true }
     );
 

@@ -30,6 +30,15 @@ const QRCodeSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      // Every dynamic QR must route through the /r/<slug> redirect engine to
+      // be trackable. Enforce that invariant at the model layer so a dynamic
+      // code can never be persisted without its tracking slug.
+      validate: {
+        validator(v) {
+          return this.isDynamic ? !!v : true;
+        },
+        message: "Dynamic QR codes must have a shortSlug to be trackable.",
+      },
     },
     destinationUrl: {
       type: String,

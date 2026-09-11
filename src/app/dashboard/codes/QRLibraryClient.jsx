@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, Grid, List, FolderPlus, Plus, X, QrCode } from "lucide-react";
+import { Search, Grid, List, FolderPlus, X, QrCode } from "lucide-react";
 import Button from "@/components/ui/Button";
 import RecentCodesTable from "@/components/dashboard/RecentCodesTable";
 import QRFolderSidebar from "@/components/dashboard/QRFolderSidebar";
@@ -117,8 +117,7 @@ export default function QRLibraryClient({ initialFolders, initialCodes }) {
               {activeFolder ? `Viewing folder` : "Manage and track all your active QR campaigns."}
             </p>
           </div>
-          <Button href="/studio" variant="primary" style={{ gap: "0.5rem" }}>
-            <Plus size={18} />
+          <Button href="/studio" variant="primary">
             Create QR Code
           </Button>
         </div>

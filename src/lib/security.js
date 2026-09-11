@@ -21,6 +21,21 @@ export function generateShortSlug(length = 8) {
 }
 
 /**
+ * Allocate a shortSlug that is guaranteed not to collide with an existing
+ * QR code record. Backed by the unique sparse index; retries on collision.
+ * Every dynamic QR MUST resolve through the /r/<slug> redirect engine, so a
+ * slug is what makes a code trackable — never allow creation without one.
+ */
+export async function createUniqueShortSlug(QRCodeModel, length = 10, maxAttempts = 3) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const slug = generateShortSlug(length);
+    const existing = await QRCodeModel.exists({ shortSlug: slug });
+    if (!existing) return slug;
+  }
+  throw new Error("Unable to allocate a unique short slug after retries");
+}
+
+/**
  * Validate a QR destination URL for use in the redirect engine.
  * Returns a normalized safe URL string, or null if it fails validation.
  *
