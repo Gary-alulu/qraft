@@ -49,6 +49,7 @@ function StudioContent() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationQrSvg, setCelebrationQrSvg] = useState(null);
   const [studioTab, setStudioTab] = useState("content");
+  const [generating, setGenerating] = useState(false);
   const [savedSlug, setSavedSlug] = useState(null);
 
   // Refs mirror the latest render values so background async work (auto-track)
@@ -63,6 +64,7 @@ function StudioContent() {
   const qrInstanceRef = useRef(null);
   const autoTrackLockRef = useRef(false);
   const autoTrackTimerRef = useRef(null);
+  const generatingTimerRef = useRef(null);
 
   const scanabilityContext = useMemo(() => ({
     type: activeType,
@@ -134,6 +136,11 @@ function StudioContent() {
   }, [router, setData]);
 
   const handleGenerate = useCallback((newDataString) => {
+    // Show the loading animation on the QR preview while the code regenerates.
+    setGenerating(true);
+    if (generatingTimerRef.current) clearTimeout(generatingTimerRef.current);
+    generatingTimerRef.current = setTimeout(() => setGenerating(false), 600);
+
     const dyn = isDynamicRef.current;
     const slug = savedSlugRef.current;
     if (dyn && slug) {
@@ -152,6 +159,7 @@ function StudioContent() {
 
   useEffect(() => () => {
     if (autoTrackTimerRef.current) clearTimeout(autoTrackTimerRef.current);
+    if (generatingTimerRef.current) clearTimeout(generatingTimerRef.current);
   }, []);
 
   // Load existing QR data if editing
@@ -377,7 +385,7 @@ function StudioContent() {
 
       <StudioLayout
         leftPanel={<QRTypeSelector activeType={activeType} setActiveType={setActiveType} formData={formData} setFormData={setFormData} onGenerate={handleGenerate} isDynamic={isDynamic} setIsDynamic={setIsDynamic} onSwitchToPreview={() => setStudioTab("preview")} />}
-        centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={handleDownload} />}
+        centerPanel={<QRPreview qrRef={attachTo} scanability={scanability} onDownload={handleDownload} generating={generating} />}
         rightPanel={<DesignPanel options={options} updateOptions={updateOptions} />}
         activeTab={studioTab}
         onTabChange={setStudioTab}

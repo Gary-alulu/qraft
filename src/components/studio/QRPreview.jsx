@@ -6,9 +6,9 @@ import Button from "@/components/ui/Button";
 import ScanabilityScore from "./ScanabilityScore";
 import ExportPanel from "./ExportPanel";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { X } from "lucide-react";
+import { X, QrCode } from "lucide-react";
 
-export default function QRPreview({ qrRef, scanability, onDownload, type = "website" }) {
+export default function QRPreview({ qrRef, scanability, onDownload, type = "website", generating = false }) {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
@@ -41,7 +41,57 @@ export default function QRPreview({ qrRef, scanability, onDownload, type = "webs
           overflow: isMobile ? "visible" : "hidden"
         }}
       >
-        <div ref={qrRef} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", opacity: isExportOpen ? 0.3 : 1, transition: "opacity 0.3s" }} />
+        <div ref={qrRef} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", opacity: isExportOpen || generating ? 0.3 : 1, transition: "opacity 0.3s" }} />
+
+        {/* Loading overlay while the QR regenerates */}
+        <AnimatePresence>
+          {generating && (
+            <motion.div
+              key="qr-loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.75rem",
+                background: "rgba(255, 255, 255, 0.85)",
+                backdropFilter: "blur(2px)",
+                WebkitBackdropFilter: "blur(2px)",
+              }}
+            >
+              <motion.div
+                initial={{ rotate: 0, scale: 0.9 }}
+                animate={{ rotate: 360, scale: 1 }}
+                transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  border: "3px solid rgba(0, 212, 255, 0.2)",
+                  borderTopColor: "var(--color-secondary)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <QrCode size={22} style={{ color: "var(--color-primary)" }} />
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-primary)" }}
+              >
+                Generating QR code...
+              </motion.span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Desktop: export options overlay the QR card */}
         {!isMobile && (
