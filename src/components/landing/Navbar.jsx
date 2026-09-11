@@ -142,7 +142,11 @@ export default function Navbar() {
             background: "transparent",
             border: "none",
             cursor: "pointer",
-            padding: "0.5rem",
+            padding: "0.625rem",
+            minWidth: "44px",
+            minHeight: "44px",
+            alignItems: "center",
+            justifyContent: "center",
           }}
           aria-label="Toggle menu"
         >
@@ -205,7 +209,10 @@ export default function Navbar() {
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
                 style={{
-                  padding: "0.75rem 1rem",
+                  padding: "0.875rem 1rem",
+                  minHeight: "44px",
+                  display: "flex",
+                  alignItems: "center",
                   fontSize: "1rem",
                   fontWeight: 500,
                   color: "var(--color-text)",

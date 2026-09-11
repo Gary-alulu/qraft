@@ -391,8 +391,11 @@ export default function FirstQRCelebration({ visible, onDismiss, onCreateAnother
                 border: "1px solid rgba(0,212,255,0.2)",
                 boxShadow:
                   "0 0 0 1px rgba(255,255,255,0.8) inset, 0 4px 24px rgba(30,58,95,0.12), 0 0 48px rgba(0,212,255,0.12), 0 24px 64px rgba(10,22,40,0.18)",
-                padding: "2.5rem 2.25rem 2rem",
+                padding: "2rem 1.5rem 1.5rem",
                 maxWidth: 420,
+                maxHeight: "calc(100vh - 3rem)",
+                maxHeight: "calc(100dvh - 3rem)",
+                overflowY: "auto",
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",

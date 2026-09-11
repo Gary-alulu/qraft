@@ -153,8 +153,10 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   aria-label={social.name}
                   style={{
-                    width: "38px",
-                    height: "38px",
+                    width: "44px",
+                    height: "44px",
+                    minWidth: "44px",
+                    minHeight: "44px",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid rgba(255, 255, 255, 0.12)",
                     display: "flex",
@@ -208,10 +210,13 @@ export default function Footer() {
                 </h4>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {links.map((link) => (
-                    <li key={link.label} style={{ marginBottom: "0.625rem" }}>
+                    <li key={link.label} style={{ marginBottom: "0.25rem" }}>
                       <Link
                         href={link.href}
                         style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          padding: "0.375rem 0",
                           fontSize: "0.875rem",
                           color: "rgba(255, 255, 255, 0.5)",
                           textDecoration: "none",

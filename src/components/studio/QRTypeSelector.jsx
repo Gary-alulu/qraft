@@ -270,7 +270,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       case "vcard":
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="q-input-pair">
               <Input label="First Name" value={data.firstName || ""} onChange={(e) => handleDataChange("firstName", e.target.value)} style={{ flex: 1 }} />
               <Input label="Last Name" value={data.lastName || ""} onChange={(e) => handleDataChange("lastName", e.target.value)} style={{ flex: 1 }} />
             </div>
@@ -376,7 +376,7 @@ export default function QRTypeSelector({ activeType, setActiveType, formData, se
       case "location":
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="q-input-pair">
               <Input label="Latitude" type="number" step="any" value={data.lat || ""} onChange={(e) => handleDataChange("lat", e.target.value)} style={{ flex: 1 }} />
               <Input label="Longitude" type="number" step="any" value={data.lng || ""} onChange={(e) => handleDataChange("lng", e.target.value)} style={{ flex: 1 }} />
             </div>

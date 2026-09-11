@@ -247,6 +247,23 @@ body {
   }
 }
 
+/* Two-input rows (e.g. vCard names, lat/lng) collapse to stacked on narrow
+   screens — on phones a ~156px-wide field per column is too cramped. */
+.q-input-pair {
+  display: flex;
+  gap: 1rem;
+}
+.q-input-pair > * {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .q-input-pair {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
 /* ── Card Hover Lift ── */
 .card-hover {
   transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth);
@@ -367,6 +384,37 @@ body {
   justify-content: center;
   background: var(--color-bg);
   position: relative;
+}
+
+/* ── Hero ── */
+.hero-section {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+@media (max-width: 768px) {
+  .hero-section {
+    padding-top: 6rem;
+    padding-bottom: 3.5rem;
+  }
+}
+
+/* ── Studio Frame: 100vh with 100dvh on browsers that support it (iOS Safari,
+   Chrome 108+) so the toolbar doesn't clip bottom controls. ── */
+.studio-frame {
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+.full-frame {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  .studio-frame {
+    height: calc(100dvh - 64px);
+  }
+  .full-frame {
+    height: 100dvh;
+  }
 }
 
 /* ── Animated underline ── */

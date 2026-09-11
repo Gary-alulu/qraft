@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 
 export default function CTA() {
   return (
-    <section className="section-padding" style={{ padding: "6rem 1.5rem" }}>
+    <section className="section-padding" style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
       <div className="container-qraft">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

@@ -174,7 +174,8 @@ export default function QRCreatorDemo() {
                     type="button"
                     onClick={() => setDotType(p.id)}
                     style={{
-                      padding: "0.4375rem 0.875rem",
+                      padding: "0.625rem 0.875rem",
+                      minHeight: "44px",
                       borderRadius: "var(--radius-pill)",
                       border: "1.5px solid",
                       borderColor:
@@ -220,8 +221,8 @@ export default function QRCreatorDemo() {
                     type="button"
                     onClick={() => setFgColor(c)}
                     style={{
-                      width: "40px",
-                      height: "40px",
+                      width: "44px",
+                      height: "44px",
                       borderRadius: "50%",
                       background: c,
                       border: fgColor === c ? "3px solid var(--color-secondary)" : "3px solid transparent",

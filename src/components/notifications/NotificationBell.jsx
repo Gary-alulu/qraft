@@ -200,8 +200,13 @@ export default function NotificationBell() {
               position: "absolute",
               top: "calc(100% + 10px)",
               right: 0,
+              left: "auto",
               width: "380px",
               maxWidth: "90vw",
+              maxHeight: "calc(100dvh - 90px)",
+              maxHeight: "calc(100vh - 90px)",
+              display: "flex",
+              flexDirection: "column",
               background: "var(--color-surface)",
               borderRadius: "var(--radius-xl)",
               border: "1px solid var(--color-border-light)",
@@ -262,7 +267,7 @@ export default function NotificationBell() {
             </div>
 
             {/* Notification List with Timeline grouping */}
-            <div style={{ maxHeight: "380px", overflowY: "auto" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
               {notifications.length === 0 ? (
                 <div style={{ padding: "2.5rem 1.5rem", textAlign: "center", color: "var(--color-text-muted)" }}>
                   <Bell size={28} style={{ margin: "0 auto 0.5rem", opacity: 0.4 }} />

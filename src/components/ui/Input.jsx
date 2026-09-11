@@ -13,12 +13,13 @@ export default function Input({
   helpText,
   required = false,
   className = "",
+  style,
   ...props
 }) {
   const [focused, setFocused] = useState(false);
 
   return (
-    <div className={className} style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+    <div className={className} style={{ display: "flex", flexDirection: "column", gap: "0.375rem", minWidth: 0, ...style }}>
       {label && (
         <label
           style={{

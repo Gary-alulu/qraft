@@ -153,7 +153,7 @@ export default function AdminOverviewPage() {
                 </div>
                 <div>
                   <div style={{ color: "var(--color-text)", fontWeight: 500 }}>{u.name}</div>
-                  <div style={{ color: "var(--color-text-secondary)", fontSize: "0.8125rem" }}>{u.email}</div>
+                  <div style={{ color: "var(--color-text-secondary)", fontSize: "0.8125rem", overflowWrap: "break-word", wordBreak: "break-word", minWidth: 0 }}>{u.email}</div>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>

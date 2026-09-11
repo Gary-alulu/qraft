@@ -69,7 +69,7 @@ export default function FloatingNav() {
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
-            <Link key={item.name} href={item.href} style={{ textDecoration: "none" }}>
+            <Link key={item.name} href={item.href} style={{ textDecoration: "none" }} aria-label={item.name} title={item.name}>
               <motion.div
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -97,8 +97,8 @@ export default function FloatingNav() {
 
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
 
-      <Button href="/studio" variant="primary" style={{ borderRadius: "100px", padding: "0.75rem 1.25rem" }}>
-        <span className="nav-label" style={{ display: "none" }}>Create</span>
+      <Button href="/studio" variant="primary" style={{ borderRadius: "100px", padding: "0.75rem 1.25rem", whiteSpace: "nowrap" }}>
+        <span className="nav-label nav-create-label" style={{ display: "none" }}>Create</span>
       </Button>
 
       <div style={{ width: "1px", height: "24px", background: "var(--color-border)", margin: "0 0.5rem" }} />
@@ -122,6 +122,9 @@ export default function FloatingNav() {
       </motion.button>
 
       <style jsx>{`
+        .nav-create-label {
+          display: inline-block !important;
+        }
         @media (min-width: 768px) {
           .nav-label {
             display: inline-block !important;

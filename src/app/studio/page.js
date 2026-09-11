@@ -312,14 +312,14 @@ function StudioContent() {
 
   if (loadingConfig) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+<div className="full-frame" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Loader2 className="animate-spin" size={32} color="var(--color-primary)" />
       </div>
     );
   }
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="studio-frame">
       <header style={{ 
         height: "64px", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)", 
         display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "0 0.875rem" : "0 1.5rem", gap: "0.5rem"

@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 export default function Hero() {
   return (
     <section
-      className="gradient-hero"
+      className="gradient-hero hero-section"
       style={{
         position: "relative",
         overflow: "hidden",

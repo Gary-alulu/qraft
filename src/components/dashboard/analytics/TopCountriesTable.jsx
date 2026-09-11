@@ -8,8 +8,8 @@ export default function TopCountriesTable({ data }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {data.map((country, index) => (
-        <div key={index} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div style={{ width: "120px", fontSize: "0.875rem", fontWeight: 500, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div key={index} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ flex: "0 1 auto", minWidth: 0, maxWidth: "140px", fontSize: "0.8125rem", fontWeight: 500, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {country.name}
           </div>
           

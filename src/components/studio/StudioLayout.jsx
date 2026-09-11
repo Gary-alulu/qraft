@@ -14,7 +14,7 @@ export default function StudioLayout({
 
   if (isMobile) {
     return (
-      <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}>
+      <div className="studio-frame">
         <div style={{ padding: "0 1rem", background: "var(--color-surface)", borderBottom: "1px solid var(--color-border-light)" }}>
           <Tabs
             tabs={[

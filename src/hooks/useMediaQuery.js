@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 
 export default function useMediaQuery(query) {
-  const [matches, setMatches] = useState(false);
+  // Initialize synchronously from matchMedia where possible so the first
+  // client render already reflects the real viewport (avoids painting the
+  // desktop layout on phones before hydration flips it).
+  const [matches, setMatches] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(query).matches
+  );
 
   useEffect(() => {
     const mq = window.matchMedia(query);
